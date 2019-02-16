@@ -1,0 +1,23 @@
+<html>
+	<head>
+		<script type='text/javascript' src='js/classes.js'></script>
+		<script type='text/javascript' src='js/gameBrain.js'></script>
+		<link rel='stylesheet' type='text/css' href='css/styles.css'></link>
+	</head>
+	
+	<body onload="gameInit()">
+		<div id="headerContainer">
+			<span>Controls<br/>W/A/S/D move camera</span>
+		</div>
+		<div id="gameContainer" class="gameContainer">
+			<canvas id='gameCanvas' height="800" width="800">
+				Your browser doesn't support the canvas tag.
+			</canvas>
+		</div>
+		<div id="loadGameDiv">
+			<textarea id="txtGameData">
+			</textarea>
+		</div>
+		<audio id="bgm1" src="audio/rezoner-puzzle-1-a.mp3"></audio>
+	</body>
+</html>

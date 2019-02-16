@@ -1,0 +1,11 @@
+ATTRIBUTIONS
+
+This project makes use of public assets that were made available for open-source developers. The use of these assets does not
+in any way reflect the content creator's endorsement, support, or affiliation with this project in any way. Below are attributions
+for all such assets.
+
+rezoner-puzzle-1-a.mp3
+	Created by rezoner
+	Licensed under Creative Commons 3.0 (https://creativecommons.org/licenses/by/3.0/)
+	https://opengameart.org/users/rezoner
+	

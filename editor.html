@@ -1,0 +1,23 @@
+<html>
+	<head>
+		<script type='text/javascript' src='js/editorBrain.js'></script>
+		<script type='text/javascript'>
+			window.onload = function() {
+				//Invoke the initialization method when the window is loaded.
+				init();
+			}
+		</script>
+		<link rel='stylesheet' type='text/css' href='css/styles.css'></link>
+	</head>
+	
+	<body>
+		<div id="gameContainer" class="gameContainer">
+			<canvas id='gameCanvas' height="800" width="800">
+				Your browser doesn't support the canvas tag.
+			</canvas>
+		</div>
+		<div id="countryInfoDiv">
+			Country Name: <input type='text' id='txtName'/>
+		</div>
+	</body>
+</html>

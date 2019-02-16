@@ -1,0 +1,16 @@
+body {
+	background-color: #000000;
+}
+
+.gameContainer {
+	text-align:center;
+}
+
+#gameCanvas {
+	border: 1px solid white;
+}
+
+#headerContainer {
+	text-align: center;
+	color: #ffffff;
+}
