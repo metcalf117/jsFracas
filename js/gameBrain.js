@@ -7,34 +7,54 @@ jsFracas.BORDER_NORTH = 1;
 jsFracas.BORDER_EAST = 2;
 jsFracas.BORDER_SOUTH = 4;
 jsFracas.BORDER_WEST = 8;
+
 jsFracas.CANVAS_HEIGHT = 800;
 jsFracas.CANVAS_WIDTH = 800;
 jsFracas.CAMERA_SPEED = 16;
+jsFracas.MINIMAP_SCALE = 10; //The minimap is 1/10 the size of the game canvas
+
 jsFracas.FACTION_OCEAN = 0;
 jsFracas.FACTION_UNOWNED = 1;
+
+jsFracas.TURN_RESUPPLY = 0;
+jsFracas.TURN_ANNEX = 1;
+jsFracas.TURN_MOVE = 2;
+
+jsFracas.BEHAVIOR_CAPITAL_LOSS_RANDOM = 0;
+jsFracas.BEHAVIOR_CAPITAL_LOSS_SWITCH = 1;
+jsFracas.BEHAVIOR_CAPITAL_LOSS_REMAIN_LOYAL = 2;
+jsFracas.BEHAVIOR_CAPITAL_LOSS_BECOME_UNOWNED = 3;
+
+jsFracas.BEHAVIOR_DEATH_RANDOM = 0;
+jsFracas.BEHAVIOR_DEATH_SWITCH_TO_CONQUEROR = 1;
+jsFracas.BEHAVIOR_DEATH_SWITCH_TO_ALLIES = 2;
+jsFracas.BEHAVIOR_DEATH_REMAIN_LOYAL = 3;
+jsFracas.BEHAVIOR_DEATH_BECOME_UNOWNED = 4;
+
+//Music and sounds
+jsFracas.MUSIC_BGM1 = 0;
+jsFracas.SFX_INVALID = 0;
+jsFracas.SFX_ATTACK = 1;
+
+//Configuration values (TODO: make them, ya know, configurable)
+jsFracas.reinforcementByCountryNumber = 3; //How many additional troops each owned country adds to reinforcements
+jsFracas.navalStrength = 0.6; //The percentage of strength naval bases provide (min 0, max, um, like a lot)
+jsFracas.allowMovethrough = false; //Allow troops to be moved between any two owned countries as long as a valid path exists (default: false)
+jsFracas.pickCapitals = true; //Whether or not players can choose their capital countries
+jsFracas.loseOnCapitalLoss = true; //Whether or not players lose when their capital city is captured/destroyed (default: false)
+jsFracas.countryBehaviorOnCapitalLoss = jsFracas.BEHAVIOR_CAPITAL_LOSS_RANDOM; //How countries a player owns should behave when the capital is lost
+jsFracas.countryBehaviorOnDeath = jsFracas.BEHAVIOR_DEATH_RANDOM; //How countries a player owned should behave when that player is dead
+jsFracas.countryMinimumTroopCount = 0; //The minimum number of troops allowed during map generation
+jsFracas.countryMaximumTroopCount = 100; //The maximum number of troops allowed during map generation
+jsFracas.countryAllowGenerationTroops = true; //Whether or not to allow troops in unowned countries during generation
 
 //Global objects
 jsFracas.owningFactions = [];
 jsFracas.music = [];
+jsFracas.soundFX = [];
 
 var gameWrapper = null;
 var graphicsContext = null;
-
-/*
-var testNodes = [
-	[0,0,0,0,0,0,0,0,0,0,7,7],
-	[0,1,1,1,0,0,0,0,5,5,0,7],
-	[0,0,1,2,2,2,0,0,5,5,0,0],
-	[0,0,0,3,3,2,0,0,5,5,0,0],
-	[0,0,0,3,3,3,0,0,0,0,0,0],
-	[0,0,0,3,4,3,0,0,0,0,0,0],
-	[0,0,0,4,4,4,4,4,0,0,0,0],
-	[0,0,0,0,0,0,4,4,0,0,0,0],
-	[0,0,0,0,0,0,4,4,0,0,0,0],
-	[0,7,7,0,0,0,0,0,0,0,0,6],
-	[0,0,7,0,0,0,0,0,0,6,6,6],
-	[0,0,0,0,0,0,0,0,0,6,6,6],
-]; */
 
 /**
  *  Initialize the game data and create base objects to start the game
@@ -46,7 +66,7 @@ function gameInit() {
 	var gameCamera = new jsFracas.Camera(cameraRect);
 	
 	//Create the factions
-	//TODO: Make this more dynamic maybe?
+	//TODO: Extract all player factions to a form before game starts
 	jsFracas.owningFactions[0] = new jsFracas.Faction(0, "Ocean", "#000033", false);
 	jsFracas.owningFactions[1] = new jsFracas.Faction(1, "Unclaimed", "#888888", false); //Unclaimed/unowned countries
 	jsFracas.owningFactions[2] = new jsFracas.Faction(2, "Player 1", "#C0392B", true); //Red Player
@@ -66,23 +86,22 @@ function gameInit() {
 	jsFracas.owningFactions[16] = new jsFracas.Faction(16, "Player 15", "#FFFFFF", false); //White Player
 	jsFracas.owningFactions[17] = new jsFracas.Faction(17, "Player 16", "#AED6F1", false); //Sky Blue Player
 	
-	//Setup musics
-	jsFracas.music[0] = document.getElementById("bgm1");
-	
+	//Setup musics and SFX
+	jsFracas.music[jsFracas.MUSIC_BGM1] = document.getElementById("bgm1");
+	jsFracas.soundFX[jsFracas.SFX_INVALID] = document.getElementById("sfxInvalid");
+	jsFracas.soundFX[jsFracas.SFX_ATTACK] = document.getElementById("sfxAttack");
 	
 	//TODO: This needs to be in a form before the game, but lazy dev wants fast tests lol
 	//Get the total number of players, who is human/AI, names, and team information
 	//Allow for changing the colors
 	
-	var testNodes = createRandomMap(50,50);
+	var testNodes = createRandomMap(50, 50);
 	
 	var gameNodes = createCountryList(testNodes);
 	
 	var currentPlayers = [jsFracas.owningFactions[2], jsFracas.owningFactions[10], jsFracas.owningFactions[4]];
-	
-	//TODO: Actually load in/prep a camera and nodesList;
-	//gameWrapper = new GameWrapper(nodesList, cameraObject, graphicsContext);
-	gameWrapper = new jsFracas.GameWrapper(gameNodes, gameCamera, document.getElementById("gameCanvas"), currentPlayers);
+
+	gameWrapper = new jsFracas.GameWrapper(gameNodes, gameCamera, currentPlayers, document.getElementById("gameCanvas"), document.getElementById("minimapCanvas"));
 	
 	jsFracas.music[0].loop = true;
 	jsFracas.music[0].play();
@@ -98,8 +117,10 @@ function gameInit() {
 	//document.addEventListener('mouseup', gameWrapper.handleMouseUp.bind(gameWrapper));
 	gameCanvas.addEventListener('click', gameWrapper.handleClick.bind(gameWrapper));
 	
-	//Call the gameWrapper update about 20 times per second
-	//setInterval(gameWrapper.update.bind(gameWrapper), 50);
+	//NOTE: I *never* recommend grabbing the context menu event in anything except a game
+	gameCanvas.addEventListener('contextmenu', gameWrapper.handleRightClick.bind(gameWrapper));
+	
+	//Setup the game loop using the requestAnimationFrame method
 	window.requestAnimationFrame(gameWrapper.update.bind(gameWrapper));
 }
 
@@ -136,6 +157,16 @@ function createCountryList(nodeData) {
 	//Iterate through all nodes contained within a country to extract the numeric IDs of neighboring countries and set the border mode
 	for(var countryIterator = 0; countryIterator < countryList.length; countryIterator++) {
 		var currentCountry = countryList[countryIterator];
+		
+		if(jsFracas.countryAllowGenerationTroops) {
+			var maxRandom = jsFracas.countryMaximumTroopCount - jsFracas.countryMinimumTroopCount;
+			var troopCount = Math.floor(Math.random() * maxRandom) + jsFracas.countryMinimumTroopCount;
+			if(currentCountry.getOwningFaction().getFactionId() != 0) {
+				currentCountry.setTroops(troopCount);
+			} else {
+				currentCountry.setTroops(0);
+			}
+		}
 		
 		var foundNeighborIds = [];
 		
@@ -216,6 +247,10 @@ function createCountryList(nodeData) {
 	return countryList;
 }
 
+/*
+ * Create a random tile map for use with the createCountryList method. 
+ * TODO: Make this take parameters similar to openFracas to allow fine-tuning of map details
+ */
 function createRandomMap(width, height) {
 	var randomMap = [];
 	var nodeIdCount = 1;

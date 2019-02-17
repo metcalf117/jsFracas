@@ -6,18 +6,37 @@
 	</head>
 	
 	<body onload="gameInit()">
-		<div id="headerContainer">
-			<span>Controls<br/>W/A/S/D move camera</span>
-		</div>
 		<div id="gameContainer" class="gameContainer">
-			<canvas id='gameCanvas' height="800" width="800">
-				Your browser doesn't support the canvas tag.
-			</canvas>
+			<div id="headerContainer">
+				<span>Controls: W/A/S/D move camera, left-click interact, right-click more info</span><br/>
+				<span id='bannerMessage'></span>
+			</div>
+			<div class="columnRow">
+				<div id='infoColumn' class='gameColumn left'>
+					<span> Information Panel </span>
+					<hr/>
+					<span id='infoCountryName'>Country Name:</span><br/>
+					<span id='infoCountryTroops'>Troop Count:</span><br/>
+					<span id='infoCountryDefense'>Total defense:</span><br/>
+					<span id='infoCountryOwnerName'>Owned by:</span><br/>
+				</div>
+				<canvas id='gameCanvas' class='gameColumn canvasDisplay' height="800" width="800">
+					Your browser doesn't support the canvas tag.
+				</canvas>
+				<div id='minimapContainer' class='gameColumn right'>
+					<span>Minimap</span><br/>
+					<canvas id='minimapCanvas' class='canvasDisplay' height='160' width='160'>
+						Your browser doesn't support the canvas tag
+					</canvas>
+				</div>
+			</div>
+			<div id="loadGameDiv" class="hidden">
+				<textarea id="txtGameData"></textarea>
+			</div>
 		</div>
-		<div id="loadGameDiv">
-			<textarea id="txtGameData">
-			</textarea>
-		</div>
+		
 		<audio id="bgm1" src="audio/rezoner-puzzle-1-a.mp3"></audio>
+		<audio id="sfxInvalid" src="audio/invalid.mp3"></audio>
+		<audio id="sfxAttack" src="audio/attack.mp3"></audio>
 	</body>
 </html>

@@ -6,11 +6,39 @@ body {
 	text-align:center;
 }
 
-#gameCanvas {
+.canvasDisplay {
 	border: 1px solid white;
 }
 
 #headerContainer {
 	text-align: center;
+	color: #ffffff;
+}
+
+.hidden {
+	display:none;
+}
+
+.gameColumn {
+	float:left;
+}
+
+.left {
+	width:25%;
+}
+
+.middle {
+	width: 50%;
+}
+
+.right {
+	width:25%;
+}
+
+#infoColumn {
+	background-color: #cccccc;
+}
+
+#minimapContainer {
 	color: #ffffff;
 }
