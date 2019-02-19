@@ -314,9 +314,15 @@ jsFracas.Country = class {
 		
 		//Now that all nodes have been drawn, render the troop count
 		if(this.troops > 0) {
-			gContext.font = "15px Georgia";
+			if(this.troops <= 999) {
+				gContext.font = "15px Georgia";
+			} else if (this.troops <= 9999) {
+				gContext.font = "12px Georgia";
+			} else if (this.troops <= 99999) {
+				gContext.font = "8px Georgia";
+			}
 			gContext.fillStyle = "#000000";
-			gContext.fillText(this.troops, textX + (jsFracas.TILE_SIZE / 2), textY + (jsFracas.TILE_SIZE / 2));
+			gContext.fillText(this.troops, textX + 2, textY + (jsFracas.TILE_SIZE / 2));
 		}
 	}
 }
@@ -438,7 +444,7 @@ jsFracas.GameWrapper = class {
 		
 		//Initialize turn and state information
 		this.playerTurn = 0;
-		this.isThinking = false;
+		this.aiPerformingTurn = false;
 		this.pickedCapitals = false;
 		this.tempCountry = null; //Used for holding a country object for two-stage actions made by the player (like moving troops)
 	}
@@ -588,6 +594,8 @@ jsFracas.GameWrapper = class {
 							
 							//Add the country to the player's list of countries
 							currentPlayer.addCountry(clickedCountry);
+						
+							jsFracas.soundFX[jsFracas.SFX_ANNEX].play();
 						
 							this.turnStage = jsFracas.TURN_MOVE;
 						} else {
@@ -803,6 +811,9 @@ jsFracas.GameWrapper = class {
 				}
 				
 				console.log(player.getFactionName() + " has been defeated!");
+				jsFracas.soundFX[jsFracas.SFX_ATTACK].pause();
+				jsFracas.soundFX[jsFracas.SFX_ATTACK].currentTime = 0;
+				jsFracas.soundFX[jsFracas.SFX_PLAYER_DEATH].play();
 				this.players.splice(playerIterator, 1);
 				break;
 			}
@@ -825,6 +836,7 @@ jsFracas.GameWrapper = class {
 	 * Responsible for advancing the turn with respect to max players
 	 */
 	advanceTurn() {
+		this.aiPerformingTurn = false;
 		this.turnStage = jsFracas.TURN_RESUPPLY;
 		this.playerTurn++;
 		if(this.playerTurn >= this.players.length) {
@@ -914,71 +926,98 @@ jsFracas.GameWrapper = class {
 			}
 			
 			if(this.playerTurn == this.players.length - 1) {
-				console.log("Picked capitals flipped to true");
 				this.pickedCapitals = true;
+				this.advanceTurn();
+			} else {
+				setTimeout(this.updateAITurn.bind(this), jsFracas.TURN_DELAY);
 			}
 		} else {
-			//Otherwise the computer needs to lock it's advancements to it's neighboring areas
-			var randomCountryIndex = Math.floor(Math.random() * currentPlayer.getCountries().length);
-			var randomCountry = currentPlayer.getCountries()[randomCountryIndex];
-			
-			var randomNeighborIndex = Math.floor(Math.random() * randomCountry.getNeighbors().length);
-			var randomNeighbor = randomCountry.getNeighbors()[randomNeighborIndex];
-			
-			var chosenCountry = this.countriesList[randomNeighbor];
-			
-			var neighborGrabAttempts = 0;
-			//Allow up to 5 attempts before iterating to find available neighbor
-			while(chosenCountry.getOwningFaction().getFactionId() != jsFracas.FACTION_UNOWNED && neighborGrabAttempts < 5) {
-				randomCountryIndex = Math.floor(Math.random() * currentPlayer.getCountries().length);
-				randomCountry = currentPlayer.getCountries()[randomCountryIndex];
-				
-				randomNeighborIndex = Math.floor(Math.random() * randomCountry.getNeighbors().length);
-				randomNeighbor = randomCountry.getNeighbors()[randomNeighborIndex];
-				
-				chosenCountry = this.countriesList[randomNeighbor];
-				neighborGrabAttempts++;
-			}
-			
-			if(neighborGrabAttempts != 5) {
-				//Found a country within the limit
-				chosenCountry.setOwningFaction(currentPlayer);
-				currentPlayer.addCountry(chosenCountry);
-			} else {
-				//Failed to find a valid neighbor, iterate through and take the first available
-				var annexedOrAttacked = false;
-				for(var countryIterator = 0; countryIterator < currentPlayer.getCountries().length; countryIterator++) {
-					var currentCountry = currentPlayer.getCountries()[countryIterator];
-					for(var neighborIterator = 0; neighborIterator < currentCountry.getNeighbors().length; neighborIterator++) {
-						var neighborId = currentCountry.getNeighbors()[neighborIterator];
+			switch(this.turnStage) {
+				case jsFracas.TURN_RESUPPLY:
+					var resupplyCountryIndex = Math.floor(Math.random() * currentPlayer.getCountries().length);
+					currentPlayer.getCountries()[resupplyCountryIndex].modTroops(jsFracas.reinforcementByCountryNumber * currentPlayer.getCountries().length);
+					setTimeout(this.updateAITurn.bind(this), jsFracas.TURN_DELAY);
+					break;
+				case jsFracas.TURN_ANNEX:
+					//Otherwise the computer needs to lock it's advancements to it's neighboring areas
+					var randomCountryIndex = Math.floor(Math.random() * currentPlayer.getCountries().length);
+					var randomCountry = currentPlayer.getCountries()[randomCountryIndex];
+					
+					var randomNeighborIndex = Math.floor(Math.random() * randomCountry.getNeighbors().length);
+					var randomNeighbor = randomCountry.getNeighbors()[randomNeighborIndex];
+					
+					var chosenCountry = this.countriesList[randomNeighbor];
+					
+					var neighborGrabAttempts = 0;
+					//Allow up to 5 attempts before iterating to find available neighbor
+					while(chosenCountry.getOwningFaction().getFactionId() != jsFracas.FACTION_UNOWNED && neighborGrabAttempts < 5) {
+						randomCountryIndex = Math.floor(Math.random() * currentPlayer.getCountries().length);
+						randomCountry = currentPlayer.getCountries()[randomCountryIndex];
 						
-						if(this.countriesList[neighborId].getOwningFaction().getFactionId() == jsFracas.FACTION_UNOWNED) {
-							this.countriesList[neighborId].setOwningFaction(currentPlayer);
-							currentPlayer.addCountry(this.countriesList[neighborId]);
-							annexedOrAttacked = true;
-							break;
-						} else if(this.countriesList[neighborId].getOwningFaction().getFactionId() != jsFracas.FACTION_OCEAN && this.countriesList[neighborId].getOwningFaction().getFactionId() != currentPlayer.getFactionId()) {
-							//Attempt an attack
-							console.log("======Performing AI attack======");
-							console.log(this.countriesList[neighborId]);
-							var attackSuccess = this.performAttack(currentPlayer, this.countriesList[neighborId], false);
-							if(attackSuccess) {
-								annexedOrAttacked = true;
+						randomNeighborIndex = Math.floor(Math.random() * randomCountry.getNeighbors().length);
+						randomNeighbor = randomCountry.getNeighbors()[randomNeighborIndex];
+						
+						chosenCountry = this.countriesList[randomNeighbor];
+						neighborGrabAttempts++;
+					}
+					
+					if(neighborGrabAttempts != 5) {
+						//Found a country within the limit
+						chosenCountry.setOwningFaction(currentPlayer);
+						currentPlayer.addCountry(chosenCountry);
+						jsFracas.soundFX[jsFracas.SFX_ANNEX].play();
+					} else {
+						//Failed to find a valid neighbor, iterate through and take the first available
+						var annexedOrAttacked = false;
+						for(var countryIterator = 0; countryIterator < currentPlayer.getCountries().length; countryIterator++) {
+							var currentCountry = currentPlayer.getCountries()[countryIterator];
+							for(var neighborIterator = 0; neighborIterator < currentCountry.getNeighbors().length; neighborIterator++) {
+								var neighborId = currentCountry.getNeighbors()[neighborIterator];
+								
+								if(this.countriesList[neighborId].getOwningFaction().getFactionId() == jsFracas.FACTION_UNOWNED) {
+									this.countriesList[neighborId].setOwningFaction(currentPlayer);
+									currentPlayer.addCountry(this.countriesList[neighborId]);
+									annexedOrAttacked = true;
+									jsFracas.soundFX[jsFracas.SFX_ANNEX].play();
+									break;
+								} else if(this.countriesList[neighborId].getOwningFaction().getFactionId() != jsFracas.FACTION_OCEAN && this.countriesList[neighborId].getOwningFaction().getFactionId() != currentPlayer.getFactionId()) {
+									//Attempt an attack
+									console.log("======Performing AI attack======");
+									console.log(this.countriesList[neighborId]);
+									var attackSuccess = this.performAttack(currentPlayer, this.countriesList[neighborId], false);
+									if(attackSuccess) {
+										annexedOrAttacked = true;
+										break;
+									}
+								}
+							}
+							
+							if(annexedOrAttacked) {
 								break;
 							}
 						}
 					}
-					
-					if(annexedOrAttacked) {
-						break;
-					}
-				}
+					setTimeout(this.updateAITurn.bind(this), jsFracas.TURN_DELAY);
+					break;
+				case jsFracas.TURN_MOVE:
+					//TODO: Implment moving troops phase
+					setTimeout(this.updateAITurn.bind(this), jsFracas.TURN_DELAY);
+					break;
+				case jsFracas.TURN_AI_END_TURN:
+					this.advanceTurn();
+					break;
 			}
-			
-			//TODO: Implment moving troops phase
 		}
-		
-		//AI done
+	}
+	
+	updateAITurn() {
+		this.aiPerformingTurn = false;
+		if(!this.pickedCapitals) {
+			//TODO: Make this verify that the turn actually goes to the first player after the flag flips to true on last player capital pick
+			this.advanceTurn();
+		} else {
+			this.turnStage++;
+		}
 	}
 	
 	/*
@@ -1002,12 +1041,10 @@ jsFracas.GameWrapper = class {
 				this.updateBanner(this.players[this.playerTurn].getFactionName() + ", move troops!");
 				break;
 		}
-		if(!currentPlayer.isHuman && !this.isThinking) {
+		if(!currentPlayer.isHuman && !this.aiPerformingTurn) {
 			//AI :D
-			this.isThinking = true;
+			this.aiPerformingTurn = true;
 			this.testAI();
-			this.advanceTurn();
-			this.isThinking = false;
 		}
 		this.camera.update();
 		this.render();

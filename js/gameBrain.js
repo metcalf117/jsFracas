@@ -36,6 +36,7 @@ jsFracas.FACTION_PLAYER16 = 17;
 jsFracas.TURN_RESUPPLY = 0;
 jsFracas.TURN_ANNEX = 1;
 jsFracas.TURN_MOVE = 2;
+jsFracas.TURN_AI_END_TURN = 3;
 
 jsFracas.BEHAVIOR_CAPITAL_LOSS_RANDOM = 0;
 jsFracas.BEHAVIOR_CAPITAL_LOSS_SWITCH = 1;
@@ -48,10 +49,15 @@ jsFracas.BEHAVIOR_DEATH_SWITCH_TO_ALLIES = 2;
 jsFracas.BEHAVIOR_DEATH_REMAIN_LOYAL = 3;
 jsFracas.BEHAVIOR_DEATH_BECOME_UNOWNED = 4;
 
+jsFracas.TURN_DELAY = 1000;
+
 //Music and sounds
 jsFracas.MUSIC_BGM1 = 0;
 jsFracas.SFX_INVALID = 0;
 jsFracas.SFX_ATTACK = 1;
+jsFracas.SFX_ANNEX = 2;
+jsFracas.SFX_PLAYER_DEATH = 3;
+jsFracas.SFX_DEVELOP = 4;
 
 //Configuration values (TODO: make them, ya know, configurable)
 jsFracas.reinforcementByCountryNumber = 3; //How many additional troops each owned country adds to reinforcements
@@ -107,22 +113,25 @@ function gameInit() {
 	jsFracas.music[jsFracas.MUSIC_BGM1] = document.getElementById("bgm1");
 	jsFracas.soundFX[jsFracas.SFX_INVALID] = document.getElementById("sfxInvalid");
 	jsFracas.soundFX[jsFracas.SFX_ATTACK] = document.getElementById("sfxAttack");
+	jsFracas.soundFX[jsFracas.SFX_ANNEX] = document.getElementById("sfxAnnex");
+	jsFracas.soundFX[jsFracas.SFX_PLAYER_DEATH] = document.getElementById("sfxPlayerDeath");
+	jsFracas.soundFX[jsFracas.SFX_DEVELOP] = document.getElementById("sfxDevelop");
 	
 	//TODO: This needs to be in a form before the game, but lazy dev wants fast tests lol
 	//Get the total number of players, who is human/AI, names, and team information
 	//Allow for changing the colors
 	
-	var testNodes = createRandomMap(12, 12);
+	var testNodes = createRandomMap(50, 50);
 	
 	var oceanPlayer = jsFracas.owningFactions[jsFracas.FACTION_OCEAN];
 	var gameNodes = createCountryList(testNodes, oceanPlayer);
 	
-	var currentPlayers = [jsFracas.owningFactions[2], jsFracas.owningFactions[10], jsFracas.owningFactions[4]];
+	var currentPlayers = [jsFracas.owningFactions[jsFracas.FACTION_PLAYER1], jsFracas.owningFactions[jsFracas.FACTION_PLAYER9], jsFracas.owningFactions[jsFracas.FACTION_PLAYER3], jsFracas.owningFactions[jsFracas.FACTION_PLAYER11];
 
 	gameWrapper = new jsFracas.GameWrapper(gameNodes, gameCamera, oceanPlayer, currentPlayers, document.getElementById("gameCanvas"), document.getElementById("minimapCanvas"));
 	
-	//jsFracas.music[0].loop = true;
-	//jsFracas.music[0].play();
+	jsFracas.music[0].loop = true;
+	jsFracas.music[0].play();
 	
 	if(gameWrapper == null) {
 		//Realistically should never happen, but you never know
@@ -179,14 +188,6 @@ function createCountryList(nodeData, oceanPlayer) {
 	for(var oceanCountryIterator = 0; oceanCountryIterator < oceanCountries.length; oceanCountryIterator++) {
 		var countryListIndex = countryList.length;
 		countryList[countryListIndex] = oceanCountries[oceanCountryIterator];
-	}
-	
-	for(var row =0;row < nodeData.length; row++) {
-		var p = "";
-		for(var col = 0; col < nodeData[row].length; col++) {
-			p += nodeData[row][col] + ",";
-		}
-		console.log(p);
 	}
 	
 	//Iterate through all nodes contained within a country to extract the numeric IDs of neighboring countries and set the border mode
@@ -280,7 +281,6 @@ function createCountryList(nodeData, oceanPlayer) {
 		
 		currentCountry.setNeighbors(foundNeighborIds);
 	}
-	console.log(countryList);
 	return countryList;
 }
 
@@ -293,10 +293,10 @@ function createOceanCountries(nodeData, nodeIdCount, lastUsedCountryIndex) {
 	for(var row = 0; row < nodeData.length; row++) {
 		for(var col = 0; col < nodeData[row].length; col++) {
 			if(nodeData[row][col] == 0) {
-				console.log("createOceanCountries (" + col + "," + row + ") is ocean tile");
 				var oceanCountry = createOceanCountry(nodeData, nodeIdCount, lastUsedCountryIndex, col, row);
 				if(oceanCountry != null) {
 					oceanCountries[oceanCountries.length] = oceanCountry;
+					lastUsedCountryIndex++;
 				}
 			}
 		}
@@ -314,22 +314,9 @@ function createOceanCountry(tileMap, nodeIdCount, lastUsedCountryIndex, startX, 
 	if(oceanNodes != null) {
 		//Create with a 0 id, it will be filled in with the proper id when added to the full list of countries
 		oceanCountry = new jsFracas.Country(lastUsedCountryIndex, "Ocean #" + lastUsedCountryIndex, jsFracas.owningFactions[jsFracas.FACTION_OCEAN]);
-		lastUsedCountryIndex++;
 		for(var oceanNodeIterator = 0; oceanNodeIterator < oceanNodes.length; oceanNodeIterator++) {
-			var currentNodeArray = oceanNodes[oceanNodeIterator];
-			if(currentNodeArray != null) {
-				if(currentNodeArray.length == undefined) {
-					oceanCountry.addNode(currentNodeArray);
-				} else {
-					for(var nodeIterator = 0; nodeIterator < currentNodeArray.length; nodeIterator++) {
-						var currentNode = currentNodeArray[nodeIterator];
-
-						if(currentNode != null) {
-							oceanCountry.addNode(currentNode);
-						}
-					}
-				}
-			}
+			var currentNode = oceanNodes[oceanNodeIterator];
+			oceanCountry.addNode(currentNode);
 		}
 	}
 	
@@ -355,25 +342,18 @@ function createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x, 
 	//Check to see if any direct neighbors are ocean tiles worth investigating
 	if(x - 1 >= 0) {
 		westNodes = createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x-1, y);
-
 	}
 	
 	if(x + 1 < tileMap[y].length) {
-
 		eastNodes = createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x+1, y);
-
 	}
 	
 	if(y - 1 >= 0) {
-
 		northNodes = createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x, y - 1);
-
 	}
 	
 	if(y + 1 < tileMap.length) {
-
 		southNodes = createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x, y + 1);
-
 	}
 	
 	for(var westNodeIterator = 0; westNodeIterator < westNodes.length; westNodeIterator++) {
@@ -395,27 +375,7 @@ function createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x, 
 	nodes = nodes.filter(function (el) {
 		return el != null;
 	});
-	
-	//nodes = getNestedNodes(nodes);
 
-	return nodes;
-}
-
-function getNestedNodes(nodeArray) {
-	var nodes = [];
-	var nestedNodes = [];
-	for(var i = 0; i < nodeArray.length; i++) {
-		if(Array.isArray(nodeArray[i])) {
-			nestedNodes = getNestedNodes(nodeArray[i]);
-		} else {
-			nodes[nodes.length] = nodeArray[i];
-		}
-	}
-	
-	for(var j = 0; j < nestedNodes.length; j++) {
-		nodes[nodes.length] = nestedNodes[j];
-	}
-	
 	return nodes;
 }
 
