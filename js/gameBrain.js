@@ -13,8 +13,25 @@ jsFracas.CANVAS_WIDTH = 800;
 jsFracas.CAMERA_SPEED = 16;
 jsFracas.MINIMAP_SCALE = 10; //The minimap is 1/10 the size of the game canvas
 
+//Faction IDs
 jsFracas.FACTION_OCEAN = 0;
 jsFracas.FACTION_UNOWNED = 1;
+jsFracas.FACTION_PLAYER1 = 2;
+jsFracas.FACTION_PLAYER2 = 3;
+jsFracas.FACTION_PLAYER3 = 4;
+jsFracas.FACTION_PLAYER4 = 5;
+jsFracas.FACTION_PLAYER5 = 6;
+jsFracas.FACTION_PLAYER6 = 7;
+jsFracas.FACTION_PLAYER7 = 8;
+jsFracas.FACTION_PLAYER8 = 9; 
+jsFracas.FACTION_PLAYER9 = 10;
+jsFracas.FACTION_PLAYER10 = 11;
+jsFracas.FACTION_PLAYER11 = 12;
+jsFracas.FACTION_PLAYER12 = 13;
+jsFracas.FACTION_PLAYER13 = 14;
+jsFracas.FACTION_PLAYER14 = 15;
+jsFracas.FACTION_PLAYER15 = 16;
+jsFracas.FACTION_PLAYER16 = 17;
 
 jsFracas.TURN_RESUPPLY = 0;
 jsFracas.TURN_ANNEX = 1;
@@ -67,24 +84,24 @@ function gameInit() {
 	
 	//Create the factions
 	//TODO: Extract all player factions to a form before game starts
-	jsFracas.owningFactions[0] = new jsFracas.Faction(0, "Ocean", "#000033", false);
-	jsFracas.owningFactions[1] = new jsFracas.Faction(1, "Unclaimed", "#888888", false); //Unclaimed/unowned countries
-	jsFracas.owningFactions[2] = new jsFracas.Faction(2, "Player 1", "#C0392B", true); //Red Player
-	jsFracas.owningFactions[3] = new jsFracas.Faction(3, "Player 2", "#E74C3C", false); //Pink player
-	jsFracas.owningFactions[4] = new jsFracas.Faction(4, "Player 3", "#9B59B6", false); //Lavender player
-	jsFracas.owningFactions[5] = new jsFracas.Faction(5, "Player 4", "#8E44AD", false); //Purple player
-	jsFracas.owningFactions[6] = new jsFracas.Faction(6, "Player 5", "#2980B9", false); //Blue Player
-	jsFracas.owningFactions[7] = new jsFracas.Faction(7, "Player 6", "#3498DB", false); //Light Blue Player
-	jsFracas.owningFactions[8] = new jsFracas.Faction(8, "Player 7", "#1ABC9C", false); //Turquoise Player
-	jsFracas.owningFactions[9] = new jsFracas.Faction(9, "Player 8", "#16A085", false); //Seafoam player
-	jsFracas.owningFactions[10] = new jsFracas.Faction(10, "Player 9", "#27AE60", false); //Emerald player
-	jsFracas.owningFactions[11] = new jsFracas.Faction(11, "Player 10", "#2ECC71", false); //Forest Player
-	jsFracas.owningFactions[12] = new jsFracas.Faction(12, "Player 11", "#F1C40F", false); //Yellow Player
-	jsFracas.owningFactions[13] = new jsFracas.Faction(13, "Player 12", "#F39C12", false); //Gold Player
-	jsFracas.owningFactions[14] = new jsFracas.Faction(14, "Player 13", "#E67E22", false); //Light Orange Player
-	jsFracas.owningFactions[15] = new jsFracas.Faction(15, "Player 14", "#D35400", false); //Orange Player
-	jsFracas.owningFactions[16] = new jsFracas.Faction(16, "Player 15", "#FFFFFF", false); //White Player
-	jsFracas.owningFactions[17] = new jsFracas.Faction(17, "Player 16", "#AED6F1", false); //Sky Blue Player
+	jsFracas.owningFactions[jsFracas.FACTION_OCEAN] = new jsFracas.Faction(jsFracas.FACTION_OCEAN, "Ocean", "#000033", false);
+	jsFracas.owningFactions[jsFracas.FACTION_UNOWNED] = new jsFracas.Faction(jsFracas.FACTION_UNOWNED, "Unclaimed", "#888888", false); //Unclaimed/unowned countries
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER1] = new jsFracas.Faction(jsFracas.FACTION_PLAYER1, "Player 1", "#C0392B", true); //Red Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER2] = new jsFracas.Faction(jsFracas.FACTION_PLAYER2, "Player 2", "#E74C3C", false); //Pink player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER3] = new jsFracas.Faction(jsFracas.FACTION_PLAYER3, "Player 3", "#9B59B6", false); //Lavender player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER4] = new jsFracas.Faction(jsFracas.FACTION_PLAYER4, "Player 4", "#8E44AD", false); //Purple player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER5] = new jsFracas.Faction(jsFracas.FACTION_PLAYER5, "Player 5", "#2980B9", false); //Blue Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER6] = new jsFracas.Faction(jsFracas.FACTION_PLAYER6, "Player 6", "#3498DB", false); //Light Blue Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER7] = new jsFracas.Faction(jsFracas.FACTION_PLAYER7, "Player 7", "#1ABC9C", false); //Turquoise Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER8] = new jsFracas.Faction(jsFracas.FACTION_PLAYER8, "Player 8", "#16A085", false); //Seafoam player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER9] = new jsFracas.Faction(jsFracas.FACTION_PLAYER9, "Player 9", "#27AE60", false); //Emerald player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER10] = new jsFracas.Faction(jsFracas.FACTION_PLAYER10, "Player 10", "#2ECC71", false); //Forest Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER11] = new jsFracas.Faction(jsFracas.FACTION_PLAYER11, "Player 11", "#F1C40F", false); //Yellow Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER12] = new jsFracas.Faction(jsFracas.FACTION_PLAYER12, "Player 12", "#F39C12", false); //Gold Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER13] = new jsFracas.Faction(jsFracas.FACTION_PLAYER13, "Player 13", "#E67E22", false); //Light Orange Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER14] = new jsFracas.Faction(jsFracas.FACTION_PLAYER14, "Player 14", "#D35400", false); //Orange Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER15] = new jsFracas.Faction(jsFracas.FACTION_PLAYER15, "Player 15", "#FFFFFF", false); //White Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER16] = new jsFracas.Faction(jsFracas.FACTION_PLAYER16, "Player 16", "#AED6F1", false); //Sky Blue Player
 	
 	//Setup musics and SFX
 	jsFracas.music[jsFracas.MUSIC_BGM1] = document.getElementById("bgm1");
@@ -95,16 +112,17 @@ function gameInit() {
 	//Get the total number of players, who is human/AI, names, and team information
 	//Allow for changing the colors
 	
-	var testNodes = createRandomMap(50, 50);
+	var testNodes = createRandomMap(12, 12);
 	
-	var gameNodes = createCountryList(testNodes);
+	var oceanPlayer = jsFracas.owningFactions[jsFracas.FACTION_OCEAN];
+	var gameNodes = createCountryList(testNodes, oceanPlayer);
 	
 	var currentPlayers = [jsFracas.owningFactions[2], jsFracas.owningFactions[10], jsFracas.owningFactions[4]];
 
-	gameWrapper = new jsFracas.GameWrapper(gameNodes, gameCamera, currentPlayers, document.getElementById("gameCanvas"), document.getElementById("minimapCanvas"));
+	gameWrapper = new jsFracas.GameWrapper(gameNodes, gameCamera, oceanPlayer, currentPlayers, document.getElementById("gameCanvas"), document.getElementById("minimapCanvas"));
 	
-	jsFracas.music[0].loop = true;
-	jsFracas.music[0].play();
+	//jsFracas.music[0].loop = true;
+	//jsFracas.music[0].play();
 	
 	if(gameWrapper == null) {
 		//Realistically should never happen, but you never know
@@ -130,38 +148,56 @@ function gameInit() {
  *  This method is pretty hefty, but is only needed for first-time game data initialization
  *  so it's not a terribly huge deal I suppose
  */
-function createCountryList(nodeData) {
+function createCountryList(nodeData, oceanPlayer) {
 	var countryList = [];
 	var nodeIdCount = 0;
+	var lastUsedCountryIndex = 0;
 	
 	//Parse raw data to create basic countries list
 	for(var row = 0; row < nodeData.length; row++) {
 		for (var col = 0; col < nodeData[row].length; col++) {
 			var nodeId = nodeData[row][col];
 			
-			//If this is the first node for the country, create a new country
-			if(countryList[nodeId] == null) {
-				if(nodeId == 0) {
-					countryList[nodeId] = new jsFracas.Country(nodeId, "Ocean", jsFracas.owningFactions[0]);
-				} else {
+			//Only process non-ocean tiles first, ocean tiles will be processed separately afterwords
+			if(nodeId != 0) {
+				//If this is the first node for the country, create a new country
+				if(countryList[nodeId] == null) {
 					countryList[nodeId] = new jsFracas.Country(nodeId, "Country #" + nodeId, jsFracas.owningFactions[1]);
 				}
-			}
 			
-			//Add the new node to the country's node list
-			countryList[nodeId].addNode(new jsFracas.Node(nodeIdCount, col * jsFracas.TILE_SIZE, row * jsFracas.TILE_SIZE, col, row));
-			nodeIdCount++;
+				//Add the new node to the country's node list
+				countryList[nodeId].addNode(new jsFracas.Node(nodeIdCount, col * jsFracas.TILE_SIZE, row * jsFracas.TILE_SIZE, col, row));
+				nodeIdCount++;
+			}
 		}
 	}
 	
+	lastUsedCountryIndex = countryList.length;
+	
+	//Iterate through tile data to create ocean "countries"
+	var oceanCountries = createOceanCountries(nodeData, nodeIdCount, lastUsedCountryIndex);
+	for(var oceanCountryIterator = 0; oceanCountryIterator < oceanCountries.length; oceanCountryIterator++) {
+		var countryListIndex = countryList.length;
+		countryList[countryListIndex] = oceanCountries[oceanCountryIterator];
+	}
+	
+	for(var row =0;row < nodeData.length; row++) {
+		var p = "";
+		for(var col = 0; col < nodeData[row].length; col++) {
+			p += nodeData[row][col] + ",";
+		}
+		console.log(p);
+	}
+	
 	//Iterate through all nodes contained within a country to extract the numeric IDs of neighboring countries and set the border mode
-	for(var countryIterator = 0; countryIterator < countryList.length; countryIterator++) {
+	//Start at 1 due to how the array was filled for ocean processing
+	for(var countryIterator = 1; countryIterator < countryList.length; countryIterator++) {
 		var currentCountry = countryList[countryIterator];
 		
 		if(jsFracas.countryAllowGenerationTroops) {
 			var maxRandom = jsFracas.countryMaximumTroopCount - jsFracas.countryMinimumTroopCount;
 			var troopCount = Math.floor(Math.random() * maxRandom) + jsFracas.countryMinimumTroopCount;
-			if(currentCountry.getOwningFaction().getFactionId() != 0) {
+			if(currentCountry.getOwningFaction().getFactionId() != jsFracas.FACTION_OCEAN) {
 				currentCountry.setTroops(troopCount);
 			} else {
 				currentCountry.setTroops(0);
@@ -169,11 +205,12 @@ function createCountryList(nodeData) {
 		}
 		
 		var foundNeighborIds = [];
-		
+
 		for(var nodeIterator = 0; nodeIterator < currentCountry.getNodeList().length; nodeIterator++) {
 			var currentNode = currentCountry.getNodeList()[nodeIterator];
-			var tileX = currentNode.getWorldX() / jsFracas.TILE_SIZE;
-			var tileY = currentNode.getWorldY() / jsFracas.TILE_SIZE;
+			
+			var tileX = currentNode.getTileX();
+			var tileY = currentNode.getTileY();
 			
 			//Neighbors can only be in the four cardinal directions, no diagonals
 			var westNeighbor = null;
@@ -243,8 +280,143 @@ function createCountryList(nodeData) {
 		
 		currentCountry.setNeighbors(foundNeighborIds);
 	}
-	
+	console.log(countryList);
 	return countryList;
+}
+
+/*
+ * Creates a list of new countries based on the nodeset of the initial ocean "country" that contains every ocean node on the map
+ */
+function createOceanCountries(nodeData, nodeIdCount, lastUsedCountryIndex) {
+	//Create an array of Country objects to be added to countryList before neighbor checks
+	var oceanCountries = [];
+	for(var row = 0; row < nodeData.length; row++) {
+		for(var col = 0; col < nodeData[row].length; col++) {
+			if(nodeData[row][col] == 0) {
+				console.log("createOceanCountries (" + col + "," + row + ") is ocean tile");
+				var oceanCountry = createOceanCountry(nodeData, nodeIdCount, lastUsedCountryIndex, col, row);
+				if(oceanCountry != null) {
+					oceanCountries[oceanCountries.length] = oceanCountry;
+				}
+			}
+		}
+	}
+	
+	return oceanCountries;
+}
+
+function createOceanCountry(tileMap, nodeIdCount, lastUsedCountryIndex, startX, startY) {
+	//Verify the starting position is ocean
+	var oceanNodes = createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, startX, startY);
+	
+	var oceanCountry = null;
+	
+	if(oceanNodes != null) {
+		//Create with a 0 id, it will be filled in with the proper id when added to the full list of countries
+		oceanCountry = new jsFracas.Country(lastUsedCountryIndex, "Ocean #" + lastUsedCountryIndex, jsFracas.owningFactions[jsFracas.FACTION_OCEAN]);
+		lastUsedCountryIndex++;
+		for(var oceanNodeIterator = 0; oceanNodeIterator < oceanNodes.length; oceanNodeIterator++) {
+			var currentNodeArray = oceanNodes[oceanNodeIterator];
+			if(currentNodeArray != null) {
+				if(currentNodeArray.length == undefined) {
+					oceanCountry.addNode(currentNodeArray);
+				} else {
+					for(var nodeIterator = 0; nodeIterator < currentNodeArray.length; nodeIterator++) {
+						var currentNode = currentNodeArray[nodeIterator];
+
+						if(currentNode != null) {
+							oceanCountry.addNode(currentNode);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	return oceanCountry;
+}
+
+function createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x, y) {
+	var nodes = [];
+
+	var westNodes = [];
+	var eastNodes = [];
+	var northNodes = [];
+	var southNodes = [];
+	
+	if(tileMap[y][x] == 0) {
+		nodes[0] = new jsFracas.Node(nodeIdCount, x * jsFracas.TILE_SIZE, y * jsFracas.TILE_SIZE, x, y);
+		nodeIdCount++;
+		tileMap[y][x] = lastUsedCountryIndex;
+	} else {
+		return nodes;
+	}
+	
+	//Check to see if any direct neighbors are ocean tiles worth investigating
+	if(x - 1 >= 0) {
+		westNodes = createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x-1, y);
+
+	}
+	
+	if(x + 1 < tileMap[y].length) {
+
+		eastNodes = createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x+1, y);
+
+	}
+	
+	if(y - 1 >= 0) {
+
+		northNodes = createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x, y - 1);
+
+	}
+	
+	if(y + 1 < tileMap.length) {
+
+		southNodes = createOceanCountryNodes(tileMap, nodeIdCount, lastUsedCountryIndex, x, y + 1);
+
+	}
+	
+	for(var westNodeIterator = 0; westNodeIterator < westNodes.length; westNodeIterator++) {
+		nodes[nodes.length] = westNodes[westNodeIterator];
+	}
+	
+	for(var eastNodeIterator = 0; eastNodeIterator < eastNodes.length; eastNodeIterator++) {
+		nodes[nodes.length] = eastNodes[eastNodeIterator];
+	}
+	
+	for(var northNodeIterator = 0; northNodeIterator < northNodes.length; northNodeIterator++) {
+		nodes[nodes.length] = northNodes[northNodeIterator];
+	}
+	
+	for(var southNodeIterator = 0; southNodeIterator < southNodes.length; southNodeIterator++) {
+		nodes[nodes.length] = southNodes[southNodeIterator];
+	}
+	
+	nodes = nodes.filter(function (el) {
+		return el != null;
+	});
+	
+	//nodes = getNestedNodes(nodes);
+
+	return nodes;
+}
+
+function getNestedNodes(nodeArray) {
+	var nodes = [];
+	var nestedNodes = [];
+	for(var i = 0; i < nodeArray.length; i++) {
+		if(Array.isArray(nodeArray[i])) {
+			nestedNodes = getNestedNodes(nodeArray[i]);
+		} else {
+			nodes[nodes.length] = nodeArray[i];
+		}
+	}
+	
+	for(var j = 0; j < nestedNodes.length; j++) {
+		nodes[nodes.length] = nestedNodes[j];
+	}
+	
+	return nodes;
 }
 
 /*

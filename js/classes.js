@@ -118,6 +118,24 @@ jsFracas.Country = class {
 		this.nodeList[this.nodeList.length] = node;
 	}
 	
+	removeNodeById(nodeId) {
+		for(var nodeIteator = 0; nodeIterator < this.nodeList.length; nodeIterator++) {
+			if(this.nodeList[nodeIterator].getId() == nodeId) {
+				this.nodeList.splice(nodeIterator, 1);
+				break;
+			}
+		}
+	}
+	
+	getNodeByTileCoordinate(tileX, tileY) {
+		for(var nodeIterator = 0; nodeIterator < this.nodeList.length; nodeIterator++) {
+			var node = this.nodeList[nodeIterator];
+			if(node.getTileX() == tileX && node.getTileY() == tileY) {
+				return node;
+			}
+		}
+	}
+	
 	getId() { return this.id; }
 	setId(id) { this.id = id;}
 	
@@ -410,9 +428,10 @@ jsFracas.EasyAI = class {
 }
 
 jsFracas.GameWrapper = class {
-	constructor(countriesList, cameraObject, players, gameCanvas, minimapCanvas) {
+	constructor(countriesList, cameraObject, oceanPlayer, players, gameCanvas, minimapCanvas) {
 		this.countriesList = countriesList;
 		this.camera = cameraObject;
+		this.oceanPlayer = oceanPlayer; //TODO: Evaluate if the game wrapper actually needs the ocean player and/or if the necessity can be mitigated by updating the countriesList?
 		this.players = players;
 		this.gameCanvas = gameCanvas;
 		this.minimapCanvas = minimapCanvas;
@@ -444,7 +463,7 @@ jsFracas.GameWrapper = class {
 	 */
 	getClickedCountry(worldX, worldY) {
 		var clickedCountry = null;
-		for(var countryIterator = 0; countryIterator < this.countriesList.length; countryIterator++) {
+		for(var countryIterator = 1; countryIterator < this.countriesList.length; countryIterator++) {
 			var country = this.countriesList[countryIterator];
 			
 			//Check all nodes of the current country
@@ -666,9 +685,11 @@ jsFracas.GameWrapper = class {
 			}
 		}
 		
-		if(defenderTroopCount > attackerTroopCount && isHumanInitiated) {
-			//Only play the sound when a human makes this mistake... they don't need to know how silly the AI is lol
-			jsFracas.soundFX[jsFracas.SFX_INVALID].play();
+		if(defenderTroopCount > attackerTroopCount) {
+			if(isHumanInitiated) {
+				//Only play the sound when a human makes this mistake... they don't need to know how silly the AI is lol
+				jsFracas.soundFX[jsFracas.SFX_INVALID].play();
+			}
 		} else {
 			attackSuccess = true;
 			var percentDifference = defenderTroopCount / attackerTroopCount;
@@ -881,7 +902,7 @@ jsFracas.GameWrapper = class {
 				currentPlayer.addCountry(this.countriesList[randCountry]);
 			} else {
 				//Failed to find a country, look for first unclaimed and take it
-				for(var i = 0; i < this.countriesList.length; i++) {
+				for(var i = 1; i < this.countriesList.length; i++) {
 					if(this.countriesList[i].getOwningFaction().getFactionId() == jsFracas.FACTION_UNOWNED) {
 						this.countriesList[i].setOwningFaction(this.players[this.playerTurn]);
 						currentPlayer.addCountry(this.countriesList[i]);
@@ -996,7 +1017,7 @@ jsFracas.GameWrapper = class {
 		var gContext = this.gameCanvas.getContext('2d');
 		gContext.fillStyle = "#000000";
 		gContext.fillRect(0, 0, jsFracas.CANVAS_WIDTH, jsFracas.CANVAS_HEIGHT);
-		for(var countryIterator = 0; countryIterator < this.countriesList.length; countryIterator++) {
+		for(var countryIterator = 1; countryIterator < this.countriesList.length; countryIterator++) {
 			this.countriesList[countryIterator].render(gContext, this.camera);
 		}
 		
@@ -1007,7 +1028,7 @@ jsFracas.GameWrapper = class {
 		
 		//Since the minimap is 1/10 the size of the game canvas, adjust drawing sizes accordingly
 		var tileSize = Math.floor(jsFracas.TILE_SIZE / 10);
-		for(var countryIterator = 0; countryIterator < this.countriesList.length; countryIterator++) {
+		for(var countryIterator = 1; countryIterator < this.countriesList.length; countryIterator++) {
 			var country = this.countriesList[countryIterator];
 			var countryNodes = country.getNodeList();
 			for(var nodeIterator = 0; nodeIterator < countryNodes.length; nodeIterator++) {
