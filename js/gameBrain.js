@@ -49,7 +49,7 @@ jsFracas.BEHAVIOR_DEATH_SWITCH_TO_ALLIES = 2;
 jsFracas.BEHAVIOR_DEATH_REMAIN_LOYAL = 3;
 jsFracas.BEHAVIOR_DEATH_BECOME_UNOWNED = 4;
 
-jsFracas.TURN_DELAY = 1000;
+jsFracas.TURN_DELAY = 750;
 
 //Music and sounds
 jsFracas.MUSIC_BGM1 = 0;
@@ -60,6 +60,18 @@ jsFracas.SFX_PLAYER_DEATH = 3;
 jsFracas.SFX_DEVELOP = 4;
 
 //Configuration values (TODO: make them, ya know, configurable)
+//Map Generation Configs
+jsFracas.mapGenerationUsePercent = false; //Whether or not to use percent or min/max generation
+jsFracas.mapGenerationMaxCountries = 250; //Shoot for no more than 875 (based on 50x50 map size)
+jsFracas.mapGenerationMinCountries = 100; //Shoot for at least 625 countries (based on 50x50 map size)
+jsFracas.mapGenerationCountryPercent = 0.35; //Percentage to shoot for for country size (if using percent based gen)
+jsFracas.mapGenerationMaxCountryNodes = 10; //The maximum amount of nodes per country
+jsFracas.mapGenerationMinCountryNodes = 2; //The minimum number of nodes per country
+jsFracas.countryMinimumTroopCount = 0; //The minimum number of troops allowed during map generation
+jsFracas.countryMaximumTroopCount = 100; //The maximum number of troops allowed during map generation
+jsFracas.countryAllowGenerationTroops = true; //Whether or not to allow troops in unowned countries during generation
+
+//Game Configuration
 jsFracas.reinforcementByCountryNumber = 3; //How many additional troops each owned country adds to reinforcements
 jsFracas.navalStrength = 0.6; //The percentage of strength naval bases provide (min 0, max, um, like a lot)
 jsFracas.allowMovethrough = false; //Allow troops to be moved between any two owned countries as long as a valid path exists (default: false)
@@ -67,9 +79,7 @@ jsFracas.pickCapitals = true; //Whether or not players can choose their capital 
 jsFracas.loseOnCapitalLoss = true; //Whether or not players lose when their capital city is captured/destroyed (default: false)
 jsFracas.countryBehaviorOnCapitalLoss = jsFracas.BEHAVIOR_CAPITAL_LOSS_RANDOM; //How countries a player owns should behave when the capital is lost
 jsFracas.countryBehaviorOnDeath = jsFracas.BEHAVIOR_DEATH_RANDOM; //How countries a player owned should behave when that player is dead
-jsFracas.countryMinimumTroopCount = 0; //The minimum number of troops allowed during map generation
-jsFracas.countryMaximumTroopCount = 100; //The maximum number of troops allowed during map generation
-jsFracas.countryAllowGenerationTroops = true; //Whether or not to allow troops in unowned countries during generation
+
 
 //Global objects
 jsFracas.owningFactions = [];
@@ -78,6 +88,48 @@ jsFracas.soundFX = [];
 
 var gameWrapper = null;
 var graphicsContext = null;
+
+function openSettingsTab(tabId) {
+	var tabs = document.getElementsByClassName("tab");
+	for(var tabIterator = 0; tabIterator < tabs.length; tabIterator++) {
+		tabs[tabIterator].style.display = "none";
+	}
+	
+	document.getElementById(tabId).style.display="block";
+}
+
+function updateMapGenType() {
+	if(document.getElementById('mapGenUsePercentBased').checked) {
+		document.getElementById('mapGenMinCountries').disabled = 'disabled';
+		document.getElementById('mapGenMaxCountries').disabled = 'disabled';
+		document.getElementById('mapGenPercent').disabled = '';
+	} else {
+		document.getElementById('mapGenMinCountries').disabled = '';
+		document.getElementById('mapGenMaxCountries').disabled = '';
+		document.getElementById('mapGenPercent').disabled = 'disabled';
+	}
+}
+
+function updateMapGenAllowTroops() {
+	if(document.getElementById("mapGenAllowTroops").checked) {
+		document.getElementById("mapGenMinTroops").disabled = '';
+		document.getElementById("mapGenMaxTroops").disabled = '';
+	} else {
+		document.getElementById("mapGenMinTroops").disabled = 'disabled';
+		document.getElementById("mapGenMaxTroops").disabled = 'disabled';
+	}
+}
+
+/*
+ * Takes in all of the user entered data to configure game settings with
+ * TODO: Make it actually do this
+ */
+function validateGameData() {
+	console.log("Validation not currently implemented");
+	document.getElementById("gameSetupContainer").style.display = "none";
+	document.getElementById("gameDisplayContainer").style.display = "block";
+	gameInit();
+}
 
 /**
  *  Initialize the game data and create base objects to start the game
@@ -102,7 +154,7 @@ function gameInit() {
 	jsFracas.owningFactions[jsFracas.FACTION_PLAYER8] = new jsFracas.Faction(jsFracas.FACTION_PLAYER8, "Player 8", "#16A085", false); //Seafoam player
 	jsFracas.owningFactions[jsFracas.FACTION_PLAYER9] = new jsFracas.Faction(jsFracas.FACTION_PLAYER9, "Player 9", "#27AE60", false); //Emerald player
 	jsFracas.owningFactions[jsFracas.FACTION_PLAYER10] = new jsFracas.Faction(jsFracas.FACTION_PLAYER10, "Player 10", "#2ECC71", false); //Forest Player
-	jsFracas.owningFactions[jsFracas.FACTION_PLAYER11] = new jsFracas.Faction(jsFracas.FACTION_PLAYER11, "Player 11", "#F1C40F", false); //Yellow Player
+	jsFracas.owningFactions[jsFracas.FACTION_PLAYER11] = new jsFracas.Faction(jsFracas.FACTION_PLAYER11, "Player 11", "#A57800", false); //Yellow Player
 	jsFracas.owningFactions[jsFracas.FACTION_PLAYER12] = new jsFracas.Faction(jsFracas.FACTION_PLAYER12, "Player 12", "#F39C12", false); //Gold Player
 	jsFracas.owningFactions[jsFracas.FACTION_PLAYER13] = new jsFracas.Faction(jsFracas.FACTION_PLAYER13, "Player 13", "#E67E22", false); //Light Orange Player
 	jsFracas.owningFactions[jsFracas.FACTION_PLAYER14] = new jsFracas.Faction(jsFracas.FACTION_PLAYER14, "Player 14", "#D35400", false); //Orange Player
@@ -126,7 +178,7 @@ function gameInit() {
 	var oceanPlayer = jsFracas.owningFactions[jsFracas.FACTION_OCEAN];
 	var gameNodes = createCountryList(testNodes, oceanPlayer);
 	
-	var currentPlayers = [jsFracas.owningFactions[jsFracas.FACTION_PLAYER1], jsFracas.owningFactions[jsFracas.FACTION_PLAYER9], jsFracas.owningFactions[jsFracas.FACTION_PLAYER3], jsFracas.owningFactions[jsFracas.FACTION_PLAYER11];
+	var currentPlayers = [jsFracas.owningFactions[jsFracas.FACTION_PLAYER1], jsFracas.owningFactions[jsFracas.FACTION_PLAYER3], jsFracas.owningFactions[jsFracas.FACTION_PLAYER9], jsFracas.owningFactions[jsFracas.FACTION_PLAYER11]];
 
 	gameWrapper = new jsFracas.GameWrapper(gameNodes, gameCamera, oceanPlayer, currentPlayers, document.getElementById("gameCanvas"), document.getElementById("minimapCanvas"));
 	
@@ -399,14 +451,18 @@ function createRandomMap(width, height) {
 	
 	console.log("--Random map initialized");
 	
-	var minCountries = Math.floor((width * height) * 0.25);
-	var maxCountries = Math.floor((width * height) * 0.3);
-	
-	var countryNum = Math.floor(Math.random() * maxCountries) + minCountries;
+	var countryNum = 0;
+	if(jsFracas.mapGenerationUsePercent) {
+		var totalSize = width * height;
+		countryNum = Math.floor(totalSize * jsFracas.mapGenerationCountryPercent);
+	} else {
+		countryNum = Math.floor(Math.random() * jsFracas.mapGenerationMaxCountries) + jsFracas.mapGenerationMinCountries;
+	}
 	
 	for(var i = 0; i < countryNum; i++) {
 		//1 to 6 nodes
-		var countryNodeCount = Math.floor(Math.random() * 6);
+		var maxNodes = jsFracas.mapGenerationMaxCountryNodes - jsFracas.mapGenerationMinCountryNodes;
+		var countryNodeCount = Math.floor(Math.random() * maxNodes) + jsFracas.mapGenerationMinCountryNodes;
 		var seedY = Math.floor(Math.random() * randomMap.length);
 		var seedX = Math.floor(Math.random() * randomMap[seedY].length);
 		var growX = seedX;

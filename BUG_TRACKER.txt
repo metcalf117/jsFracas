@@ -1,8 +1,8 @@
 Known Bugs
 * [BUG-0001] Sound FX don't always play when they should
-* [BUG-0002] Moving troops fails if clicking source country twice
 * [BUG-0003] Clicks sometimes not registered
 
 FIXED BUGS
 * [BUG-0001] When AI players attack, defending country's defense is seemingly ignored
 * [BUG-0004] Ocean countries are treated as one large country
+* [BUG-0002] Moving troops fails if clicking source country twice

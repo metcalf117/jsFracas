@@ -61,12 +61,119 @@ jsFracas.Node = class {
 	getRectBounds() { return this.rectBounds; }
 }
 
+/*
+ * The Clyde AI is pretty dumb
+ * --Prefers to randomly expand into unowned countries
+ * --Will attack if preferred expansion path is owned by non-ally
+ * --Moves troops randomly
+ * --Resupplies randomly
+ * --Will develop ports if expansion/combat isn't allowed and a sea-bordering country isn't developed
+ */
+jsFracas.ClydeAI = class {
+	think(turnStage, countryList, factionId) {
+		switch(turnStage) {
+			case jsFracas.TURN_RESUPPLY:
+				break;
+			case jsFracas.TURN_ANNEX:
+				break;
+			case jsFracas.TURN_MOVE:
+				break;
+		}
+	}
+}
+
+/*
+ * The Defensive AI likes to lock itself up in a tight ball of defense
+ * --Will annex all countries immediately surrounding capital, expanding that ring with time
+ * --Resupplies capital always until at least 1000 troops, but will check any enemy country that neighbors a country it owns and attempt to keep +100 troops from strongest detected country
+ * --Attacks any country that neighbors a neighbor of capital
+ * --Doesn't move troops unless a threat is detected near the capital, in which case troops are moved to the capital from the highest troop count countries
+ */
+jsFracas.DefensiveAI = class {
+	think(turnStage, countryList, factionId) {
+		switch(turnStage) {
+			case jsFracas.TURN_RESUPPLY:
+				break;
+			case jsFracas.TURN_ANNEX:
+				break;
+			case jsFracas.TURN_MOVE:
+				break;
+		}
+	}
+}
+
+/*
+ * The aggressive ai likes to spear head attacks for enemy capitals, while leaving its own capital relatively unguarded
+ * --Annexes countries in a direct path to an enemy capital
+ * --Resupplies the country closest to an enemy capital
+ * --Moves troops towards spear head location
+ * --Tries to maintain at least 1/5 of it's highest troop count country in its capital
+ */
+jsFracas.AggressiveAI = class {
+	think(turnStage, countryList, factionId) {
+		switch(turnStage) {
+			case jsFracas.TURN_RESUPPLY:
+				break;
+			case jsFracas.TURN_ANNEX:
+				break;
+			case jsFracas.TURN_MOVE:
+				break;
+		}
+	}
+}
+
+/*
+ * The bastard AI plays like a human.
+ * --Resupplies it's own capital if any enemies are within 9 nodes of it until capital defense alone is +250 of threat
+ * --Creates a solid border around its capital
+ * --Sends out controlled spearhead groups to attack enemy capitals
+ * --If move through is enabled and any owned countries lose route back to capital restoring that link is prioritized
+ * --If enemy countries detected closer than 9 nodes to capital, elimination of threat countries takes top priority
+ */
+jsFracas.BastardAI = class {
+	think(turnStage, countryList, factionId) {
+		switch(turnStage) {
+			case jsFracas.TURN_RESUPPLY:
+				break;
+			case jsFracas.TURN_ANNEX:
+				break;
+			case jsFracas.TURN_MOVE:
+				break;
+		}
+	}
+}
+
+/* 
+ * The sadistic AI works a bit like the bastard AI, but instead of eliminating the capital straight away, it prefers to toy with it's victims
+ * --Moves towards enemy capitals
+ * --If the enemy controls more than 25 countries and loseOnCapitalLoss is false, the capital will be struck to weaken the faction
+ * --Once the enemy capital is surrounded entirely, as long as there are more countries under that factions control the AI will perform search and destroy tactics
+ * --If the sadistic AI's capital is threatened, it will drop toying with prey and defend its capital
+ * ----If the threat is from a country currently being toyed with and eliminating their capital can be done quickly, it will be done
+ * ----Otherwise, the threat will be removed directly
+ */
+jsFracas.SadisticAI = class {
+	think(turnStage, countryList, factionId) {
+		switch(turnStage) {
+			case jsFracas.TURN_RESUPPLY:
+				
+				break;
+			case jsFracas.TURN_ANNEX:
+				break;
+			case jsFracas.TURN_MOVE:
+				break;
+		}
+	}
+}
+
 jsFracas.Faction = class {
 	constructor(factionId, factionName, countryColor, isHuman) {
 		this.factionId = factionId;
 		this.factionName = factionName;
 		this.countryColor = countryColor;
 		this.isHuman = isHuman;
+		
+		this.aiBrain = null;
 		this.countries = [];
 	}
 	
@@ -80,6 +187,22 @@ jsFracas.Faction = class {
 	
 	getIsHuman() { return this.isHuman; }
 	setIsHuman(isHuman) { this.isHuman = isHuman; }
+	
+	setAI(ai) {
+		if(this.isHuman) {
+			console.log("Tried to set AI on a human player?");
+		} else {
+			this.aiBrain = ai;
+		}
+	}
+	
+	performAI(turnStage) {
+		if(this.isHuman || this.aiBrain == null) {
+			console.log("Failed to invoke performAI for " + this.factionName + ". Either human or no AI set!");
+		} else {
+			this.aiBrain.think(turnStage, this.countries, this.factionId).bind(this.aiBrain);
+		}
+	}
 	
 	getCountries() { return this.countries; }
 	setCountries(countries) { this.countries = countries; }
@@ -204,6 +327,17 @@ jsFracas.Country = class {
 				gContext.lineTo(nodeX + (jsFracas.TILE_SIZE / 2), nodeY + jsFracas.TILE_SIZE);
 				gContext.moveTo(nodeX, nodeY + (jsFracas.TILE_SIZE / 2));
 				gContext.lineTo(nodeX + jsFracas.TILE_SIZE, nodeY + (jsFracas.TILE_SIZE / 2));
+				gContext.stroke();
+			}
+			
+			//If this country has a naval port
+			//TODO: Make this better than what it is
+			if(this.hasPort) {
+				gContext.strokeStyle = "#000088";
+				gContext.moveTo(nodeX, nodeY);
+				gContext.lineTo(nodeX + jsFracas.TILE_SIZE, nodeY + jsFracas.TILE_SIZE);
+				gContext.moveTo(nodeX, nodeY + jsFracas.TILE_SIZE);
+				gContext.lineTo(nodeX + jsFracas.TILE_SIZE, nodeY);
 				gContext.stroke();
 			}
 			
@@ -423,16 +557,6 @@ jsFracas.Camera = class {
 	}
 }
 
-jsFracas.EasyAI = class {
-	constructor(owningFaction) {
-		this.owningFaction = owningFaction;
-	}
-	
-	takeTurn() {
-		
-	}
-}
-
 jsFracas.GameWrapper = class {
 	constructor(countriesList, cameraObject, oceanPlayer, players, gameCanvas, minimapCanvas) {
 		this.countriesList = countriesList;
@@ -567,15 +691,32 @@ jsFracas.GameWrapper = class {
 					}
 					break;
 				case jsFracas.TURN_ANNEX:
-					//Figure out if annexing or attacking
+					//Figure out if annexing, attacking, or developing
 					//If the current country is unowned and the player has no capital or this country is neighbors with one they own
 					if(clickedCountry.getOwningFaction().getFactionId() == jsFracas.FACTION_UNOWNED) {
-						//Check if this country can be claimed by the current player
+						//Annexing!
 						var validSelection = false;
 						for(var playerCountryIterator = 0; playerCountryIterator < currentPlayer.getCountries().length; playerCountryIterator++) {
 							var currentPlayerCountry = currentPlayer.getCountries()[playerCountryIterator];
 							
 							for(var neighborIterator = 0; neighborIterator < currentPlayerCountry.getNeighbors().length; neighborIterator++) {
+								var neighborId = currentPlayerCountry.getNeighbors()[neighborIterator];
+								
+								//Check for valid path acrosss ocean boundaries
+								if(this.countriesList[neighborId].getOwningFaction().getFactionId() == jsFracas.FACTION_OCEAN && currentPlayerCountry.getHasPort()) {
+									var oceanNeighbors = this.countriesList[neighborId].getNeighbors();
+									for(var oceanNeighborIterator = 0; oceanNeighborIterator < oceanNeighbors.length; oceanNeighborIterator++) {
+										var oceanNeighborId = oceanNeighbors[oceanNeighborIterator];
+										if(oceanNeighborId == clickedCountry.getId()) {
+											validSelection = true;
+											break;
+										}
+									}
+									
+									if(validSelection) {
+										break;
+									}
+								}
 								if(clickedCountry.getId() == currentPlayerCountry.getNeighbors()[neighborIterator]) {
 									validSelection = true;
 									break;
@@ -609,6 +750,13 @@ jsFracas.GameWrapper = class {
 						if(attackSuccess) {
 							this.turnStage = jsFracas.TURN_MOVE;
 						} 
+					} else if(clickedCountry.getOwningFaction().getFactionId() == currentPlayer.getFactionId() && !clickedCountry.getHasPort()) {
+						//Developing
+						jsFracas.soundFX[jsFracas.SFX_DEVELOP].play();
+						clickedCountry.setHasPort(true);
+						this.turnStage = jsFracas.TURN_MOVE;
+					} else {
+						jsFracas.soundFX[jsFracas.SFX_INVALID].play();
 					}
 					break;
 				case jsFracas.TURN_MOVE:
@@ -624,44 +772,32 @@ jsFracas.GameWrapper = class {
 						} else {
 							//Otherwise, if this is the second country clicked in the move stage of the turn
 							
-							var movingSelectionsValid = false;
-							//If the allowMovethrough (any country to any country as long as valid path exists) flag is true
-							if(jsFracas.allowMovethrough) {
-								//Check for a valid path between the selected countries
-								//TODO: Naval checks
-								console.log("Performing moveThrough validation");
-								movingSelectionsValid = this.doesValidPathExistBetweenTwoCountries(this.tempCountry, clickedCountry.getId(), currentPlayer.getFactionId());
-								console.log("...movethrough says path valid = " + movingSelectionsValid);
+							//If they didn't click the same country
+							if(clickedCountry.getId() == this.tempCountry.getId()) {
+								this.tempCountry = null;
 							} else {
-								//Neighbors only rule applies
-								//TODO: Naval checks
-								console.log("Performing neighbor-only validation, looking for " + clickedCountry.getId());
-								for(var neighborIterator = 0; neighborIterator < this.tempCountry.getNeighbors().length; neighborIterator++) {
-									var neighborId = this.tempCountry.getNeighbors()[neighborIterator];
-									console.log("currentNeighborid = " + neighborId);
-									if(neighborId == clickedCountry.getId()) {
-										movingSelectionsValid = true;
-										break;
-									}
-								}
-								console.log("neighbor-only validation says path valid = " + movingSelectionsValid);
-							}
-							
-							if(movingSelectionsValid) {
-								console.log("Move is valid. Performing move.");
-								//TODO: Allow moving of custom number of troops
-								clickedCountry.modTroops(this.tempCountry.getTroops());
-								this.tempCountry.setTroops(0);
+								//Otherwise make sure the move is valid
+								var movingSelectionsValid = false;
 								
-								//Remove the highlight from the first country
-								this.tempCountry.setIsHighlighted(false);
-							} else {
-								console.log("You can only move within your own countries");
-							} 
-							
-							//Reset the temp country
-							this.tempCountry = null;
-							this.advanceTurn();
+								//Determine if a valid path (with respect to the moveThrough game flag) exists
+								movingSelectionsValid = this.doesValidPathExistBetweenTwoCountries(this.tempCountry, clickedCountry.getId(), currentPlayer.getFactionId(), true);
+								
+								if(movingSelectionsValid) {
+									//TODO: Allow moving of custom number of troops
+									clickedCountry.modTroops(this.tempCountry.getTroops());
+									this.tempCountry.setTroops(0);
+									
+									//Remove the highlight from the first country
+									this.tempCountry.setIsHighlighted(false);
+								} else {
+									console.log("You can only move within your own countries");
+									jsFracas.soundFX[jsFracas.SFX_INVALID].play();
+								} 
+								
+								//Reset the temp country
+								this.tempCountry = null;
+								this.advanceTurn();
+							}
 						}
 					} else {
 						console.log("You can only click within your own countries");
@@ -690,6 +826,18 @@ jsFracas.GameWrapper = class {
 				defenderTroopCount += neighborCountry.getTroops();
 			} else if(neighborCountry.getOwningFaction().getFactionId() == attackingPlayer.getFactionId()) {
 				attackerTroopCount += neighborCountry.getTroops();
+			} else if(neighborCountry.getOwningFaction().getFactionId() == jsFracas.FACTION_OCEAN) {
+				//Check for ocean attackers, taking into account the naval strength modifier
+				var oceanNeighbors = neighborCountry.getNeighbors();
+				for(var oceanNeighborIterator = 0; oceanNeighborIterator < oceanNeighbors.length; oceanNeighborIterator++) {
+					var oceanNeighborId = oceanNeighbors[oceanNeighborIterator];
+					var oceanNeighbor = this.countriesList[oceanNeighborId];
+					if(oceanNeighbor.getOwningFaction().getFactionId() == attackingPlayer.getFactionId() && oceanNeighbor.getHasPort()) {
+						attackerTroopCount += Math.floor(oceanNeighbor.getTroops() * jsFracas.navalStrength);
+					} else if (oceanNeighbor.getOwningFaction() == defenderFactionId && oceanNeighbor.getHasPort()) {
+						defenderTroopCount += Math.floor(oceanNeighbor.getTroops() * jsFracas.navalStrength);
+					}
+				}
 			}
 		}
 		
@@ -753,31 +901,44 @@ jsFracas.GameWrapper = class {
 	 * must be neighbors to be annexed or claimed. However, when naval ports are introduced there can be one-way
 	 * neighboring present that this method will detect and prevent movethrough in the wrong direction. 
 	 */
-	doesValidPathExistBetweenTwoCountries(currentCountry, destinationCountryId, factionId) {
+	doesValidPathExistBetweenTwoCountries(currentCountry, destinationCountryId, factionId, isMoving) {
 		var pathExists = false;
 		//Check direct neighbors, maybe we're just that lucky
 		for(var neighborIterator = 0; neighborIterator < currentCountry.getNeighbors().length; neighborIterator++) {
 			var neighborId = currentCountry.getNeighbors()[neighborIterator];
+			if(currentCountry.getHasPort() && this.countriesList[neighborId].getOwningFaction().getFactionId() == jsFracas.FACTION_OCEAN) {
+				//Ocean neighbor found and we have a port 
+				console.log("Found ocean neighbor and current country has a port, let's check it out!");
+				var oceanNeighbors = this.countriesList[neighborId].getNeighbors();
+				for(var secondNeighborIterator = 0; secondNeighborIterator < oceanNeighbors.length; secondNeighborIterator++) {
+					var oceanNeighborId = oceanNeighbors[secondNeighborIterator];
+					if(oceanNeighborId == destinationCountryId) {
+						pathExists = true;
+						console.log("Found a valid neighbor across ocean");
+						break;
+					}
+				}
+				
+				if(pathExists) {
+					break;
+				}
+			}
 			if(neighborId == destinationCountryId) {
 				pathExists = true;
 				break;
 			}
 		}
 		
-		//If we didn't find it in direct neighbors, time to recurse
-		if(!pathExists) {
+		//If we didn't find it in direct neighbors, check more if the moveThrough game flag is true and this is a move action (combat actions are locked to neighbors and ocean neighbors)
+		if(!pathExists && jsFracas.allowMovethrough && isMoving) {
 			for(var neighborIterator = 0; neighborIterator < currentCountry.getNeighbors().length; neighborIterator++) {
 				var neighborId = currentCountry.getNeighbors()[neighborIterator];
 				
-				//TODO: When naval ports are introduced, remove this check and add additional validation around
-				//ocean neighboring countries with ports
-				if(neighborId != 0) {
-					var country = this.countriesList[neighborId];
+				var country = this.countriesList[neighborId];
 					
-					//Only check through countries the player owns
-					if(country.getOwningFaction().getFactionId() == factionId) {
-						pathExists = this.doesValidPathExistBetweenTwoCountries(this.countriesList[neighborId], destinationCountryId);
-					}
+				//Only check through countries the player owns
+				if(country.getOwningFaction().getFactionId() == factionId) {
+					pathExists = this.doesValidPathExistBetweenTwoCountries(this.countriesList[neighborId], destinationCountryId);
 				}
 			}
 		}

@@ -5,8 +5,250 @@
 		<link rel='stylesheet' type='text/css' href='css/styles.css'></link>
 	</head>
 	
-	<body onload="gameInit()">
-		<div id="gameContainer" class="gameContainer">
+	<body>
+		<div id="gameSetupContainer" class="gameContainer">
+			<div class='tabControl'>
+				<button class='tabButton' onclick='openSettingsTab("playerSetup")'>Player Setup</button>
+				<button class='tabButton' onclick='openSettingsTab("mapContent")'>Map Generation</button>
+				<button class='tabButton' onclick='openSettingsTab("gameOptions")'>Game Options</button>
+			</div>
+			<div id='playerSetup' class='tab'>
+				<table class='gameSetupTable'>
+					<tr>
+						<th>Enabled</th>
+						<th>Player Name</th>
+						<th>Player Color</th>
+						<th>Is Human</th>
+						<th>Difficulty (AI-Only)</th>
+						<th>Team</th>
+					</tr>
+					<tr class='tableRowEven'>
+						<td><input type='checkbox' id='player1Enabled' checked="checked"/></td>
+						<td><input type='text' id='player1Name' value='Player 1'/></td>
+						<td><input type="text" id="player1Color" value="#C0392B"/></td>
+						<td><input type="checkbox" id="player1Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player1Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr>
+						<td><input type='checkbox' id='player2Enabled' checked="checked"/></td>
+						<td><input type='text' id='player2Name' value='Player 2'/></td>
+						<td><input type="text" id="player2Color" value="#E74C3C"/></td>
+						<td><input type="checkbox" id="player2Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player2Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr class='tableRowEven'>
+						<td><input type='checkbox' id='player3Enabled' checked="checked"/></td>
+						<td><input type='text' id='player3Name' value='Player 3'/></td>
+						<td><input type="text" id="player3Color" value="#9B59B6"/></td>
+						<td><input type="checkbox" id="player3Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player3Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr>
+						<td><input type='checkbox' id='player4Enabled' checked="checked"/></td>
+						<td><input type='text' id='player4Name' value='Player 4'/></td>
+						<td><input type="text" id="player4Color" value="#8E44AD"/></td>
+						<td><input type="checkbox" id="player4Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player4Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr class='tableRowEven'>
+						<td><input type='checkbox' id='player5Enabled' checked="checked"/></td>
+						<td><input type='text' id='player5Name' value='Player 5'/></td>
+						<td><input type="text" id="player5Color" value="#2980B9"/></td>
+						<td><input type="checkbox" id="player5Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player5Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr>
+						<td><input type='checkbox' id='player6Enabled' checked="checked"/></td>
+						<td><input type='text' id='player6Name' value='Player 6'/></td>
+						<td><input type="text" id="player6Color" value="#3498DB"/></td>
+						<td><input type="checkbox" id="player6Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player6Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr class='tableRowEven'>
+						<td><input type='checkbox' id='player7Enabled' checked="checked"/></td>
+						<td><input type='text' id='player7Name' value='Player 7'/></td>
+						<td><input type="text" id="player7Color" value="#1ABC9C"/></td>
+						<td><input type="checkbox" id="player7Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player7Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr>
+						<td><input type='checkbox' id='player8Enabled' checked="checked"/></td>
+						<td><input type='text' id='player8Name' value='Player 8'/></td>
+						<td><input type="text" id="player8Color" value="#16A085"/></td>
+						<td><input type="checkbox" id="player8Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player8Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr class='tableRowEven'>
+						<td><input type='checkbox' id='player9Enabled' checked="checked"/></td>
+						<td><input type='text' id='player9Name' value='Player 9'/></td>
+						<td><input type="text" id="player9Color" value="#27AE60"/></td>
+						<td><input type="checkbox" id="player9Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player9Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr>
+						<td><input type='checkbox' id='player10Enabled' checked="checked"/></td>
+						<td><input type='text' id='player10Name' value='Player 10'/></td>
+						<td><input type="text" id="player10Color" value="#2ECC71"/></td>
+						<td><input type="checkbox" id="player10Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player10Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr class='tableRowEven'>
+						<td><input type='checkbox' id='player11Enabled' checked="checked"/></td>
+						<td><input type='text' id='player11Name' value='Player 11'/></td>
+						<td><input type="text" id="player11Color" value="#F1C40F"/></td>
+						<td><input type="checkbox" id="player11Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player11Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr>
+						<td><input type='checkbox' id='player12Enabled' checked="checked"/></td>
+						<td><input type='text' id='player12Name' value='Player 12'/></td>
+						<td><input type="text" id="player12Color" value="#F39C12"/></td>
+						<td><input type="checkbox" id="player12Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player12Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr class='tableRowEven'>
+						<td><input type='checkbox' id='player13Enabled' checked="checked"/></td>
+						<td><input type='text' id='player13Name' value='Player 13'/></td>
+						<td><input type="text" id="player13Color" value="#E67E22"/></td>
+						<td><input type="checkbox" id="player13Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player13Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr>
+						<td><input type='checkbox' id='player14Enabled' checked="checked"/></td>
+						<td><input type='text' id='player14Name' value='Player 14'/></td>
+						<td><input type="text" id="player14Color" value="#D35400"/></td>
+						<td><input type="checkbox" id="player14Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player14Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr class='tableRowEven'>
+						<td><input type='checkbox' id='player15Enabled' checked="checked"/></td>
+						<td><input type='text' id='player15Name' value='Player 15'/></td>
+						<td><input type="text" id="player15Color" value="#FFFFFF"/></td>
+						<td><input type="checkbox" id="player15Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player15Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+					<tr>
+						<td><input type='checkbox' id='player16Enabled' checked="checked"/></td>
+						<td><input type='text' id='player16Name' value='Player 16'/></td>
+						<td><input type="text" id="player16Color" value="#AED6F1"/></td>
+						<td><input type="checkbox" id="player16Human" checked="checked"/></td>
+						<td>DIFFICULTY PLACEHOLDER</td> <!--TODO: Actually have a difficulty selection once AI is more fleshed out-->
+						<td><input type="text" id="player16Team" value=""/></td> <!--TODO: Update to be select box-->
+					</tr>
+				</table>
+			</div>
+			<div id='mapContent' class='tab hidden mapGenDiv'>
+				<table class='gameSetupTable'>
+					<tr>
+						<td>Map width:</td>
+						<td><input type='text' id='mapGenWidth' value='50'/></td>
+						<td>Map height:</td>
+						<td><input type='text' id='mapGenHeight' value='50'/></td>
+					</tr>
+					<tr class='tableRowEven'>
+						<td>Use Percent-based map generation:</td>
+						<td><input type='checkbox' id='mapGenUsePercentBased' onclick='updateMapGenType()' /></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>Country percent:</td>
+						<td><input type='text' id='mapGenPercent' value='0.35'/></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr class='tableRowEven'>
+						<td>Min. Countries:</td>
+						<td><input type='text' id='mapGenMinCountries' value='635'/></td>
+						<td>Max. countries:</td>
+						<td><input type='text' id='mapGenMaxCountries' value='875'/></td>
+					</tr>
+					<tr>
+						<td>Min. Nodes per country:</td>
+						<td><input type='text' id='mapGenMinNodes' value='2'/></td>
+						<td>Max. Nodes per country:</td>
+						<td><input type='text' id='mapGenMaxNodes' value='10'/></td>
+					</tr>
+					<tr class='tableRowEven'>
+						<td>Allow troop generation:</td>
+						<td><input type='checkbox' id='mapGenAllowTroops' checked='checked' onclick='updateMapGenAllowTroops()'/></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>Min. troop count:</td>
+						<td><input type='text' id='mapGenMinTroops' value='0'/></td>
+						<td>Max. troop count:</td>
+						<td><input type='text' id='mapGenMaxTroops' value='100'/></td>
+					</tr>
+				</table>
+			</div>
+			<div id='gameOptions' class='tab hidden'>
+				<table class='gameSetupTable'>
+					<tr>
+						<td>Players pick capitals:</td>
+						<td><input type='checkbox' id='optionsPlayersPickCapitals' checked='checked'/></td>
+					</tr>
+					<tr class='tableRowEven'>
+						<td>Allow connected-country movethrough:</td>
+						<td><input type='checkbox' id='optionsAllowMovethrough'/></td>
+					</tr>
+					<tr>
+						<td>Lose the game if capital country lost:</td>
+						<td><input type='checkbox' id='optionsLoseOnCapitalLoss' checked='checked'/></td>
+					</tr>
+					<tr class='tableRowEven'>
+						<td>Naval Strength percent (0 - 1.0):</td>
+						<td><input type='text' id='optionsNavalStrength' value='0.65'/></td>
+					</tr>
+					<tr>
+						<td>Additional reinforcements per country:</td>
+						<td><input type='text' id='optionsReinforcementByCountryNumber' value='3'/></td>
+					</tr>
+					<tr class='tableRowEven'>
+						<td>Country behavior on capital loss:</td>
+						<td>
+							<select id='optionsCountryBehaviorOnCapitalLoss'>
+								<option value='0'>Behave Randomly</option>
+								<option value='1'>Switch to conquering faction</option>
+								<option value='2'>Remain loyal to owning faction</option>
+								<option value='3'>Become unowned</option>
+								<option value='4'>Switch to allies (if any alive)</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>Country behavior on player death:</td>
+						<td>
+							<select id='optionsCountryBehaviorOnPlayerDeath'>
+								<option value='0'>Behave Randomly</option>
+								<option value='1'>Switch to conquering faction</option>
+								<option value='3'>Remain loyal to owning faction</option>
+								<option value='4'>Become unowned</option>
+								<option value='2'>Switch to allies (if any alive)</option>
+							</select>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<button id="btnStartGame" onclick="validateGameData()">Start Game</button>
+		</div>
+		<div id="gameDisplayContainer" class="gameContainer hidden">
 			<div id="headerContainer">
 				<span>Controls: W/A/S/D move camera, left-click interact, right-click more info</span><br/>
 				<span id='bannerMessage'></span>
