@@ -1,5 +1,8 @@
 window.jsFracas = window.jsFracas || { };
 
+/*
+ * Basic rectangle data structure, not super interesting or complex
+ */
 jsFracas.Rectangle = class {
 	constructor(x, y, w, h) {
 		this.x = x;
@@ -8,7 +11,7 @@ jsFracas.Rectangle = class {
 		this.h = h;
 	}
 	
-	//Basic getters and setters. Technically not needed because JavaScript, but it feels better to me personally
+	//Getters and setters
 	getX() {return this.x;}
 	setX(x) { this.x = x; }
 	
@@ -33,7 +36,9 @@ jsFracas.Rectangle = class {
 	}
 }
 
-//Country with id = 0 is ocean, all others are conssidered grouped together as countries by id
+/*
+ * The building blocks of countries. Basically a rectangle with some extra data
+ */
 jsFracas.Node = class {
 	constructor(id, worldX, worldY, tileX, tileY) {
 		this.id = id;
@@ -166,6 +171,9 @@ jsFracas.SadisticAI = class {
 	}
 }
 
+/*
+ * Represents a player (human or AI)
+ */
 jsFracas.Faction = class {
 	constructor(factionId, factionName, countryColor, isHuman) {
 		this.factionId = factionId;
@@ -190,7 +198,7 @@ jsFracas.Faction = class {
 	
 	setAI(ai) {
 		if(this.isHuman) {
-			console.log("Tried to set AI on a human player?");
+			console.log("Tried to set AI on a human player. Why?");
 		} else {
 			this.aiBrain = ai;
 		}
@@ -224,6 +232,9 @@ jsFracas.Faction = class {
 	}
 }
 
+/*
+ * A collection of nodes that form a single country (or ocean)
+ */
 jsFracas.Country = class {
 	constructor(id, name, owningFaction) {
 		this.id = id; //Numeric id, used for internal recognition
@@ -557,6 +568,9 @@ jsFracas.Camera = class {
 	}
 }
 
+/*
+ * Contains all game information and handles input for human players as well as running the AI players. 
+ */
 jsFracas.GameWrapper = class {
 	constructor(countriesList, cameraObject, oceanPlayer, players, gameCanvas, minimapCanvas) {
 		this.countriesList = countriesList;
@@ -633,19 +647,75 @@ jsFracas.GameWrapper = class {
 			return;
 		}
 		
-		//tally the defense of the country
+		//Tally the defense of this country as well as attack strength against the country
 		var defenseCount = clickedCountry.getTroops();
+		var attackCount = 0;
 		for(var neighborIterator = 0; neighborIterator < clickedCountry.getNeighbors().length; neighborIterator++) {
 			var neighborId = clickedCountry.getNeighbors()[neighborIterator];
-			if(this.countriesList[neighborId].getOwningFaction().getFactionId() == clickedCountry.getOwningFaction().getFactionId()) {
-				defenseCount += this.countriesList[neighborId].getTroops();
+			var neighborCountry = this.countriesList[neighborId];
+			var neighborFactionId = neighborCountry.getOwningFaction().getFactionId();
+			if(neighborFactionId == clickedCountry.getOwningFaction().getFactionId()) {
+				defenseCount += neighborCountry.getTroops();
+			} else if(neighborFactionId != clickedCountry.getOwningFaction().getFactionId() && neighborFactionId != jsFracas.FACTION_OCEAN && neighborFactionId != jsFracas.FACTION_UNOWNED) {
+				attackCount += neighborCountry.getTroops();
+			} else if (neighborFactionId == jsFracas.FACTION_OCEAN) {
+				//Check for any over-the-sea attackers or allies
+				var oceanNeighbors = neighborCountry.getNeighbors();
+				for(var oceanNeighborIterator = 0; oceanNeighborIterator < oceanNeighbors.length; oceanNeighbors++) {
+					var oceanNeighborId = oceanNeighbors[oceanNeighborIterator];
+					var oceanNeighbor = this.countriesList[oceanNeighborId];
+					var oceanNeighborFactionId = oceanNeighbor.getOwningFaction().getFactionId();
+					if(oceanNeighborFactionId == clickedCountry.getOwningFaction().getFactionId()) {
+						defenseCount += oceanNeighbor.getTroops() * jsFracas.navalStrength;
+					} else if (oceanNeighborFactionId != clickedCountry.getOwningFaction().getFactionId() && oceanNeighborFactionId != jsFracas.FACTION_OCEAN && oceanNeighborFactionId != jsFracas.FACTION_UNOWNED) {
+						attackCount += oceanNeighbor.getTroops() * jsFracas.navalStrength;
+					}
+				}
 			}
 		}
+		
+		//Set the highlight of countries the clicked country can access
+		for(var neighborIterator = 0; neighborIterator < clickedCountry.getNeighbors().length; neighborIterator++) {
+			var neighborId = clickedCountry.getNeighbors()[neighborIterator];
+			var neighborCountry = this.countriesList[neighborId];
+			var neighborFactionId = neighborCountry.getOwningFaction().getFactionId();
+			if(neighborFactionId != jsFracas.FACTION_OCEAN) {
+				neighborCountry.setIsHighlighted(true);
+			} else if (neighborFactionId == jsFracas.FACTION_OCEAN && clickedCountry.getHasPort()) {
+				var oceanNeighbors = neighborCountry.getNeighbors();
+				for(var oceanNeighborIterator = 0; oceanNeighborIterator < oceanNeighbors.length; oceanNeighborIterator++) {
+					var oceanNeighborId = oceanNeighbors[oceanNeighborIterator];
+					var oceanNeighbor = this.countriesList[oceanNeighborId];
+					var oceanNeighborFactionId = oceanNeighbor.getOwningFaction().getFactionId();
+					if(oceanNeighborFactionId != jsFracas.FACTION_OCEAN) {
+						oceanNeighbor.setIsHighlighted(true);
+					}
+				}
+			}
+		}
+		
+		setTimeout(this.clearHighlights.bind(this), jsFracas.HIGHLIGHT_TIME);
 		
 		document.getElementById("infoCountryName").innerHTML = "Country name: " + clickedCountry.getName();
 		document.getElementById("infoCountryTroops").innerHTML = "Troop Count: " + clickedCountry.getTroops();
 		document.getElementById("infoCountryDefense").innerHTML = "Total defense: " + defenseCount;
+		document.getElementById("infoCountryAttack").innerHTML = "Total attack: " + attackCount;
 		document.getElementById("infoCountryOwnerName").innerHTML = "Owned by: " + clickedCountry.getOwningFaction().getFactionName();
+	}
+	
+	/*
+	 * Clear highlighted countries, except tempCountry if not null
+	 */
+	clearHighlights() {
+		for(var countryIterator = 1; countryIterator < this.countriesList.length; countryIterator++) {
+			if(this.countriesList[countryIterator].getIsHighlighted()) {
+				this.countriesList[countryIterator].setIsHighlighted(false);
+			}
+		}
+		
+		if(this.tempCountry != null) {
+			this.tempCountry.setIsHighlighted(true);
+		}
 	}
 	
 	/*
@@ -768,7 +838,7 @@ jsFracas.GameWrapper = class {
 							this.tempCountry = clickedCountry;
 							this.tempCountry.setIsHighlighted(true);
 							this.updateBanner(currentPlayer.getFactionName() + ", select country to move troops to");
-							console.log("Source country set to: " + this.tempCountry.getId());
+							document.getElementById("infoMoveTroopAmount").value = this.tempCountry.getTroops();
 						} else {
 							//Otherwise, if this is the second country clicked in the move stage of the turn
 							
@@ -783,12 +853,26 @@ jsFracas.GameWrapper = class {
 								movingSelectionsValid = this.doesValidPathExistBetweenTwoCountries(this.tempCountry, clickedCountry.getId(), currentPlayer.getFactionId(), true);
 								
 								if(movingSelectionsValid) {
-									//TODO: Allow moving of custom number of troops
-									clickedCountry.modTroops(this.tempCountry.getTroops());
-									this.tempCountry.setTroops(0);
+									var troopAmount = document.getElementById("infoMoveTroopAmount").value;
+									
+									//If there's a problem with the value of the troops to move, set a default value
+									if(isNaN(troopAmount) || troopAmount > this.tempCountry.getTroops()) {
+										troopAmount = this.tempCountry.getTroops();
+									} else if (troopAmount <= 0) {
+										//TODO: Consider alerting this to the player and/or defaulting to full move amount?
+										troopAmount = 1;
+									}
+									
+									troopAmount = parseInt(troopAmount);
+									
+									clickedCountry.modTroops(troopAmount);
+									this.tempCountry.modTroops(-troopAmount);
 									
 									//Remove the highlight from the first country
 									this.tempCountry.setIsHighlighted(false);
+									
+									//Troops were moved, advance the turn
+									this.advanceTurn();
 								} else {
 									console.log("You can only move within your own countries");
 									jsFracas.soundFX[jsFracas.SFX_INVALID].play();
@@ -796,12 +880,53 @@ jsFracas.GameWrapper = class {
 								
 								//Reset the temp country
 								this.tempCountry = null;
-								this.advanceTurn();
 							}
 						}
 					} else {
 						console.log("You can only click within your own countries");
 					}
+					break;
+			}
+		}
+	}
+	
+	/*
+	 * Sets the moveTroop value box to the appropriate amount based on which button was clicked (1/4, 1/2, 3/4, or All) 
+	 */
+	setMoveTroopAmount(amountFactor) {
+		//Only do anything if it's the move step of the turn and the current player is human
+		if(this.turnStage == jsFracas.TURN_MOVE && this.players[this.playerTurn].getIsHuman()) {
+			//Only update stuff if we have a source country selected already
+			if(this.tempCountry != null) {
+				var troopCount = this.tempCountry.getTroops() * amountFactor;
+				//Should never happen, but if someone thought they were clever by editing the script to change this (as opposed to editing values directly?) go ahead and block it lol
+				if(troopCount > this.tempCountry.getTroops()) {
+					troopCount = this.tempCountry.getTroops();
+				}
+				
+				document.getElementById("infoMoveTroopAmount").value = troopCount;
+			}
+		}
+	}
+	
+	//TODO: Rig this up to a button on the front end
+	handleSkipClicked() {
+		//Only perform skipping if the current player is human
+		var currentPlayer = this.players[this.playerTurn];
+		if(currentPlayer.getIsHuman()) {
+			switch(this.turnStage) {
+				case jsFracas.TURN_RESUPPLY:
+					//Skipping on turn start is resigning
+					var confirmation = confirm("Are you sure you'd like to surrender?");
+					if(confirmation) {
+						this.handlePlayerLoss(currentPlayer.getFactionId());
+					}
+					break;
+				case jsFracas.TURN_ANNEX:
+					this.turnStage = jsFracas.TURN_MOVE;
+					break;
+				case jsFracas.TURN_MOVE:
+					this.advanceTurn();
 					break;
 			}
 		}
@@ -1143,8 +1268,6 @@ jsFracas.GameWrapper = class {
 									break;
 								} else if(this.countriesList[neighborId].getOwningFaction().getFactionId() != jsFracas.FACTION_OCEAN && this.countriesList[neighborId].getOwningFaction().getFactionId() != currentPlayer.getFactionId()) {
 									//Attempt an attack
-									console.log("======Performing AI attack======");
-									console.log(this.countriesList[neighborId]);
 									var attackSuccess = this.performAttack(currentPlayer, this.countriesList[neighborId], false);
 									if(attackSuccess) {
 										annexedOrAttacked = true;

@@ -257,10 +257,15 @@
 				<div id='infoColumn' class='gameColumn left'>
 					<span> Information Panel </span>
 					<hr/>
-					<span id='infoCountryName'>Country Name:</span><br/>
-					<span id='infoCountryTroops'>Troop Count:</span><br/>
-					<span id='infoCountryDefense'>Total defense:</span><br/>
-					<span id='infoCountryOwnerName'>Owned by:</span><br/>
+					<span id='infoCountryName'>Country Name:</span><br>
+					<span id='infoCountryTroops'>Troop Count:</span><br>
+					<span id='infoCountryDefense'>Total defense:</span><br>
+					<span id='infoCountryAttack'>Total attack:</span><br>
+					<span id='infoCountryOwnerName'>Owned by:</span>
+					<hr/>
+					<span>Troop movement</span><br>
+					<input type='text' id='infoMoveTroopAmount' value='0'/><br>
+					<button onclick='troopMoveOneQuarter()'>1/4</button>&nbsp;<button onclick='troopMoveOneHalf()'>1/2</button>&nbsp;<button onclick='troopMoveThreeQuarter()'>3/4</button>&nbsp;<button onclick='troopMoveAll()'>All</button>
 				</div>
 				<canvas id='gameCanvas' class='gameColumn canvasDisplay' height="800" width="800">
 					Your browser doesn't support the canvas tag.

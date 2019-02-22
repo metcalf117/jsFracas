@@ -1,3 +1,18 @@
 To Dos
 --Add multiple CSS themes for different A E S T H E T I C
---
+--Add random country name generator
+--Implement AI
+--Map editor
+--Custom graphics for title screen and such
+--Better SFX
+--Audio controls
+	--Multiple BGM tracks to choose from
+	--Enable/Disable BGM
+	--Enable/Disable SFX
+	--BGM and SFX volume control
+--Better drawing functions to denote ports, capital status, etc
+
+DONE
+--Allow partial troop movement
+--Display attack value from non-team factions on right click similar to defense
+--Neighbor highlighting on right click

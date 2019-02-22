@@ -49,7 +49,9 @@ jsFracas.BEHAVIOR_DEATH_SWITCH_TO_ALLIES = 2;
 jsFracas.BEHAVIOR_DEATH_REMAIN_LOYAL = 3;
 jsFracas.BEHAVIOR_DEATH_BECOME_UNOWNED = 4;
 
+//Default values for various timers
 jsFracas.TURN_DELAY = 750;
+jsFracas.HIGHLIGHT_TIME = 1200;
 
 //Music and sounds
 jsFracas.MUSIC_BGM1 = 0;
@@ -61,9 +63,11 @@ jsFracas.SFX_DEVELOP = 4;
 
 //Configuration values (TODO: make them, ya know, configurable)
 //Map Generation Configs
+jsFracas.mapGenerationMapWidth = 50; //The width of the map (in tiles)
+jsFracas.mapGenerationMapHeight = 50; //The height of the map (in tiles)
 jsFracas.mapGenerationUsePercent = false; //Whether or not to use percent or min/max generation
-jsFracas.mapGenerationMaxCountries = 250; //Shoot for no more than 875 (based on 50x50 map size)
-jsFracas.mapGenerationMinCountries = 100; //Shoot for at least 625 countries (based on 50x50 map size)
+jsFracas.mapGenerationMaxCountries = 800; //Shoot for no more than 875 (based on 50x50 map size)
+jsFracas.mapGenerationMinCountries = 600; //Shoot for at least 625 countries (based on 50x50 map size)
 jsFracas.mapGenerationCountryPercent = 0.35; //Percentage to shoot for for country size (if using percent based gen)
 jsFracas.mapGenerationMaxCountryNodes = 10; //The maximum amount of nodes per country
 jsFracas.mapGenerationMinCountryNodes = 2; //The minimum number of nodes per country
@@ -89,6 +93,9 @@ jsFracas.soundFX = [];
 var gameWrapper = null;
 var graphicsContext = null;
 
+/*
+ * Handles hiding/showing the different configuration tabs
+ */
 function openSettingsTab(tabId) {
 	var tabs = document.getElementsByClassName("tab");
 	for(var tabIterator = 0; tabIterator < tabs.length; tabIterator++) {
@@ -98,6 +105,9 @@ function openSettingsTab(tabId) {
 	document.getElementById(tabId).style.display="block";
 }
 
+/*
+ * Handles toggling inputs in the configuration form when the Use Percent Based Country setting is toggled
+ */
 function updateMapGenType() {
 	if(document.getElementById('mapGenUsePercentBased').checked) {
 		document.getElementById('mapGenMinCountries').disabled = 'disabled';
@@ -110,6 +120,9 @@ function updateMapGenType() {
 	}
 }
 
+/*
+ * Handles toggling the min/max troop inputs when the allow troops on map generation setting is toggled
+ */
 function updateMapGenAllowTroops() {
 	if(document.getElementById("mapGenAllowTroops").checked) {
 		document.getElementById("mapGenMinTroops").disabled = '';
@@ -120,21 +133,211 @@ function updateMapGenAllowTroops() {
 	}
 }
 
+function troopMoveOneQuarter() {
+	gameWrapper.setMoveTroopAmount(0.25).bind(gameWrapper);
+}
+
+function troopMoveOneHalf() {
+	gameWrapper.setMoveTroopAmount(0.5).bind(gameWrapper);
+}
+
+function troopMoveThreeQuarter() {
+	gameWrapper.setMoveTroopAmount(0.75).bind(gameWrapper);
+}
+
+function troopMoveAll() {
+	gameWrapper.setMoveTroopAmount(1).bind(gameWrapper);
+}
+
+/*
+ * Lock input for the move troops input box to only numeric input (allowing backspace and delete keys as well)
+ */
+function validateTroopMoveAmount(e) {
+	var keyPressed = e.key;
+	if(keyPressed != "Backspace" && keyPressed != "Delete" && isNaN(e.key)) {
+		e.preventDefault();
+	}
+}
+
 /*
  * Takes in all of the user entered data to configure game settings with
  * TODO: Make it actually do this
  */
 function validateGameData() {
-	console.log("Validation not currently implemented");
+	//TODO: Make this better than a huge spit out of everything wrong
+	var errors = null;
+	errors = validatePlayerInformation();
+	if(errors != null) {
+		alert(errors.join('\n'));
+		return;
+	}
+	
+	errors = validateMapGenInformation();
+	if(errors != null) {
+		alert(errors.join('\n'));
+		return;
+	}
+	
+	errors = validateGameFlags();
+	if(errors != null) {
+		alert(errors.join('\n'));
+		return;
+	}
+	
+	//Everything is valid at this point, create the players and setup the variables to be correct and such
+	
 	document.getElementById("gameSetupContainer").style.display = "none";
 	document.getElementById("gameDisplayContainer").style.display = "block";
 	gameInit();
 }
 
-/**
+function validatePlayerInformation() {
+	var errors = [];
+	
+	//Setup some regex for colorDepth
+	var htmlColorRegex = /^#[0-9A-F]{6}$/i;
+	
+	for(var playerIterator = 1; playerIterator <= 16; playerIterator++) {
+		var docIdBase = "player" + playerIterator;
+		var playerEnabled = document.getElementById(docIdBase + "Enabled").checked;
+		
+		//Only do the rest if the current player is enabled for game play
+		if(playerEnabled) {
+			var playerName = document.getElementById(docIdBase + "Name").value;
+			var playerColor = document.getElementById(docIdBase + "Color").value;
+			var playerHuman = document.getElementById(docIdBase + "Human").checked;
+			
+			//TODO: Implement difficulty confirming once it's present
+			//var playerDifficulty = document.getElementById(docIdBase + "Difficulty");
+			//TODO: Implement team checking after it's a select, free form teams are a bad idea
+			//var playerTeam = document.getElementById(docIdBase + "Team");
+			
+			if(playerName.length == 0) {
+				errors[errors.length] = docIdBase + " name cannot be empty!";
+			}
+			
+			if(!playerColor.match(htmlColorRegex)) {
+				errors[errors.length] = docIdBase + " color must be valid uppercase, long-form HTML color code (format = #XXXXXX, where X is numeric or A - F)";
+			}
+		}
+	}
+	
+	if(errors.length == 0) {
+		return null;
+	} else {
+		return errors;
+	}
+}
+
+function validateMapGenInformation() {
+	var errors = [];
+	
+	var mapWidth = document.getElementById("mapGenWidth").value;
+	var mapHeight = document.getElementById("mapGenHeight").value;
+	
+	if(isNaN(mapWidth) || isNaN(mapHeight)) {
+		errors[errors.length] = "Map width and height must be numeric and greater than or equal 10";
+	} else {
+		//Numeric values, parse to integer
+		mapWidth = parseInt(mapWidth);
+		mapHeight = parseInt(mapHeight);
+	
+		if(mapWidth < 10 || mapHeight < 10) {
+			errors[errors.length] = "Map width and height must be greater than or equal to 10";
+		}
+	}
+	
+	var usePercentBasedGen = document.getElementById("mapGenUsePercentBased").checked;
+	if(usePercentBasedGen) {
+		var mapGenPercent = document.getElementById("mapGenPercent").value;
+		if(isNaN(mapGenPercent)) {
+			errors[errors.length] = "Country percent must be numeric and between 0.01 and 1 (inclusive)";
+		} else {
+			mapGenPercent = parseFloat(mapGenPercent);
+			if(mapGenPercent < 0.01 || mapGenPercent > 1) {
+				errors[errors.length] = "Country percent must be between 0.01 and 1 (inclusive)";
+			}
+		}
+	} else {
+		var minCountries = document.getElementById("mapGenMinCountries").value;
+		var maxCountries = document.getElementById("mapGenMaxCountries").value;
+		if(isNaN(minCountries) || isNaN(maxCountries)) {
+			errors[errors.length] = "Min. Countries and Max. Countries must be numeric";
+		} else {
+			minCountries = parseInt(minCountries);
+			maxCountries = parseInt(maxCountries);
+			if(minCountries < 0) {
+				errors[errors.length] = "Min. Countries must be greater than or equal to 0";
+			}
+			
+			if(maxCountries < minCountries) {
+				errors[errors.length] = "Max. Countries must be greater than min countries";
+			}
+		}
+	}
+	
+	var minNodesPerCountry = document.getElementById("mapGenMinNodes").value;
+	var maxNodesPerCountry = document.getElementById("mapGenMaxNodes").value;
+	if(isNaN(minNodesPerCountry) || isNaN(maxNodesPerCountry)) {
+		errors[errors.length] = "Min. Nodes per country and Max. Nodes per country must be numeric";
+	} else {
+		minNodesPerCountry = parseInt(minNodesPerCountry);
+		maxNodesPerCountry = parseInt(maxNodesPerCountry);
+		
+		if(minNodesPerCountry < 0) {
+			errors[errors.length] = "Min Nodes per country must be greater than or equal to 0";
+		}
+		
+		if(maxNodesPerCountry < minNodesPerCountry) {
+			errors[errors.length] = "Max nodes per country must be greater than min nodes per country";
+		}
+	}
+	
+	var allowTroopsOnGen = document.getElementById("mapGenAllowTroops").checked;
+	if(allowTroopsOnGen) {
+		var minTroops = document.getElementById("mapGenMinTroops").value;
+		var maxTroops = document.getElementById("mapGenMaxTroops").value;
+		if(isNaN(minTroops) || isNaN(maxTroops)) {
+			errors[errors.length] = "Min. troop count and max. troop count must be numeric";
+		} else {
+			minTroops = parseInt(minTroops);
+			maxTroops = parseInt(maxTroops);
+			if(minTroops < 0) {
+				errors[errors.length] = "Min. troops must be greater than or equal to 0";
+			}
+			
+			if(maxTroops < minTroops) {
+				errors[errors.length] = "Max troops musst be greater than min troops";
+			}
+		}
+	}
+	
+	
+	if(errors.length == 0) {
+		return null;
+	} else {
+		return errors;
+	}
+}
+
+function validateGameFlags() {
+	var errors = [];
+	//errors[0] = "Validate game flags isn't implemented";
+	
+	if(errors.length == 0) {
+		return null;
+	} else {
+		return errors;
+	}
+}
+
+/*
  *  Initialize the game data and create base objects to start the game
-**/
+ */
 function gameInit() {
+	
+	//Setup element event handlers
+	document.getElementById("infoMoveTroopAmount").addEventListener('keydown', validateTroopMoveAmount);
 	
 	//Make a camera rect, then create the camera, make some nodes and get them rendering
 	var cameraRect = new jsFracas.Rectangle(0, 0, jsFracas.CANVAS_WIDTH, jsFracas.CANVAS_HEIGHT);
@@ -173,7 +376,7 @@ function gameInit() {
 	//Get the total number of players, who is human/AI, names, and team information
 	//Allow for changing the colors
 	
-	var testNodes = createRandomMap(50, 50);
+	var testNodes = createRandomMap(jsFracas.mapGenerationMapWidth, jsFracas.mapGenerationMapHeight);
 	
 	var oceanPlayer = jsFracas.owningFactions[jsFracas.FACTION_OCEAN];
 	var gameNodes = createCountryList(testNodes, oceanPlayer);
